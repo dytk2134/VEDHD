@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Upload new File</h1>
+<form action="" method=post enctype=multipart/form-data>
+  <label class="radio-inline">
+    <input type="radio" name="reference" id="GRCh37" value="GRCh37" checked> GRCh37
+  </label>
+  <!--
+  <label class="radio-inline">
+    <input type="radio" name="reference" id="GRCh38" value="GRCh38"> GRCh38
+  </label>-->
+
+  <p class="bg-primary">Output information</p>
+  <p class="bg-info">Output format</p>
+  <label class="radio-inline">
+    <input type="radio" name="format" id="freq" value="freq" checked> allele frequency
+  </label>
+  <label class="radio-inline">
+    <input type="radio" name="format" id="count" value="count"> allele count
+  </label>
+  <p class="bg-primary">Population</p>
+<p class="bg-info">1000genomes</p>
+<input type="checkbox" name="Genomes" value="1000Genomes_EAS"><abbr title="East Asian"> 1000Genomes_EAS</abbr></label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="Genomes" value="1000Genomes_AMR"><abbr title="American"> 1000Genomes_AMR</abbr>
+  </label>
+  <label class="checkbox-inline">
+    <input type="checkbox" name="Genomes" value="1000Genomes_AFR"><abbr title="African"> 1000Genomes_AFR</abbr>
+  </label>
+  <label class="checkbox-inline">
+    <input type="checkbox" name="Genomes" value="1000Genomes_EUR"><abbr title="European"> 1000Genomes_EUR</abbr>
+  </label>
+  <label class="checkbox-inline">
+    <input type="checkbox" name="Genomes" value="1000Genomes_SAS"><abbr title="South Asian"> 1000Genomes_SAS</abbr>
+  </label>
+
+  <p class="bg-info">Integrative Japanese Genome Variation Database</p>
+<label class="checkbox-inline">
+  <input type="checkbox" name="JPN" value="1KJPN"> 1KJPN
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="JPN" value="2KJPN"> 2KJPN
+</label>
+
+
+<p class="bg-info">Exome Sequencing Project</p>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ESP" value="AA"> AfricanAmerican
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ESP" value="EA"> EuropeanAmerican
+</label>
+
+  <p><input type=file name=file>
+    <input type=submit value=Upload>
+  </form>
+  {% endblock content %}           

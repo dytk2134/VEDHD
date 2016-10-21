@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block content %}
+ <h2>Expression profiles</h2>
+<p class="bg-primary">Query Options</p>
+<p class="bg-info">Output Annotation</p>
+<form action="/search" method=post>
+<p>*please select the species and reference genome you want to see:</p>
+
+    <div class="radio">
+            <label>
+                <input type="radio" name="data_Annotation" value="Human" id="Human-id" checked>
+                Homo sapiens(Human)
+            </label>
+    </div>
+    <div id="select_h" style="text-indent : 2em ;">
+<label class="radio-inline">
+  <input type="radio" name="ref" id="GRCh38-id" value="GRCh38" checked> GRCh38
+</label>
+      <label class="radio-inline">
+  <input type="radio" name="ref" id="GRCh37-id" value="GRCh37" > GRCh37
+</label>
+    </div>  
+    <div class="radio">
+            <label>
+                <input type="radio" name="data_Annotation" value="Mouse" id="Mouse-id" >
+                Mus musculus(House mouse)
+            </label>
+    </div>
+    
+    <div id="select_m" style="text-indent : 2em ;">     
+  <input type="radio" name="ref" id="GRCm38-id" value="GRCm38" checked> GRCm38
+</label>   
+    </div>
+  
+      <div class="radio">
+            <label>
+                <input type="radio" name="data_Annotation" value="Zebrafish" id="Zebrafish-id" >
+                Danio rerio(Zebrafish)
+            </label>
+    </div>
+  <div id="select_z" style="text-indent : 2em ;">     
+  <input type="radio" name="ref" id="GRCz10-id" value="GRCz10" checked> GRCz10
+</label>   
+    </div>
+<p class="bg-primary">Select output data</p>
+<span class="help" style="color:red;" name="needed">*Please check at least one species<br /></span>
+<p>Homo sapiens(Human)</p>
+   <div id="select_h_o" style="text-indent : 2em ;">    
+  <label class="checkbox-inline">
+  <input type="checkbox" name="Human_o" id="Proreinaltas_RNA-id" value="Proreinaltas_RNA" checked> Proreinaltas: RNA
+</label>
+   <label class="checkbox-inline">
+  <input type="checkbox" name="Human_o" id="Proreinaltas_Protein-id" value="Proreinaltas_Protein" > Proreinaltas: proteins
+</label>
+</div>
+  <p>Mus musculus(House mouse)</p>
+<div id="select_m_o" style="text-indent : 2em ;">    
+  <label class="checkbox-inline">
+  <input type="checkbox" name="mouse_o" id="E-MTAB-4644_RNA-id" value="E-MTAB-4644_RNA" > E-MTAB-4644: RNA
+</label>
+</div>
+<p>Danio rerio(Zebrafish)</p>
+<div id="select_z_o" style="text-indent : 2em ;">    
+  <label class="checkbox-inline">
+  <input type="checkbox" name="zebrafish_o" id="Atrium_RNA-id" value="Atrium_RNA" > Atrium: RNA
+</label>
+  <label class="checkbox-inline">
+  <input type="checkbox" name="zebrafish_o" id="Bulbus_RNA-id" value="Bulbus_RNA" >  Bulbus arteriosus : RNA
+</label>
+  <label class="checkbox-inline">
+  <input type="checkbox" name="zebrafish_o" id="ventricle_RNA-id" value="ventricle_RNA" >  Ventricle : RNA
+</label>
+
+</div>
+
+<p>Please input gene symbol or Ensembl gene id</p>
+<div class="form-group">
+  <select name="SearchType">
+    <option value="Symbol">Gene Symbol</option>
+    <option value="Ensembl_id">Ensembl Gene Id</option>
+  </select>
+  <br>
+  
+<textarea name="search_list" id="search_list" cols="50" rows="3"></textarea><br>
+</div>
+    </br>    
+    <button class="btn btn-default" type="submit" id="submit">Submit</button>   
+    </form>
+
+  <!-- jQuery v1.11.3 -->
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+          <!-- Bootstrap v3.3.6 compiled and minified Javascript -->
+              <script
+                      src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+                            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+                                  crossorigin="anonymous">
+                                      </script>
+	<script>
+$("span[name='needed']").hide();
+//$("span[name='needed2']").hide();
+//$("div[id='select_a']").hide();
+$("div[id='select_m']").hide();
+$("div[id='select_z']").hide();
+$("#submit").click(function() {  
+  
+  if($( "input[name='Data_output']:checked" ).length==0)
+  {
+    $("span[name='needed']").show();
+    return false;
+  }
+}); 
+</script>
+
+<script>
+$("input[name='data_Annotation']").change(function(){
+        if ($("#Human-id").is(':checked')) {
+                
+                $("div[id='select_h']").show();
+                $("div[id='select_m']").hide();
+                $("div[id='select_z']").hide();
+                //$("#cellline").attr('required', '');
+            }
+        if ($("#Mouse-id").is(':checked'))
+        {   
+                $("div[id='select_h']").hide();
+                $("div[id='select_m']").show();
+                $("div[id='select_z']").hide();
+                //$("#cellline").removeAttr('required');
+        }
+               if ($("#Zebrafish-id").is(':checked'))
+        {   
+                $("div[id='select_h']").hide();
+                $("div[id='select_m']").hide();
+                $("div[id='select_z']").show();
+                //$("#cellline").removeAttr('required');
+        }
+    });
+  </script>
+  {% endblock content %}
