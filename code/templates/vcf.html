@@ -9,7 +9,7 @@
   <label class="radio-inline">
     <input type="radio" name="reference" id="GRCh38" value="GRCh38"> GRCh38
   </label>-->
-
+  <input type=file name=file>
   <p class="bg-primary">Output information</p>
   <p class="bg-info">Output format</p>
   <label class="radio-inline">
@@ -43,15 +43,17 @@
 </label>
 
 
-<p class="bg-info">Exome Sequencing Project</p>
+<p class="bg-info">NHLBI Exome Sequencing Project(ESP)</p>
 <label class="checkbox-inline">
-  <input type="checkbox" name="ESP" value="AA"> AfricanAmerican
+  <input type="checkbox" name="ESP" value="AA"> African American
 </label>
 <label class="checkbox-inline">
-  <input type="checkbox" name="ESP" value="EA"> EuropeanAmerican
+  <input type="checkbox" name="ESP" value="EA"> European American
 </label>
-
-  <p><input type=file name=file>
-    <input type=submit value=Upload>
+<p></p>
+<input type=submit value=Submit> 
+<input type="reset" value="Reset" id="btn_reset">
+ 
+ 
   </form>
   {% endblock content %}           
