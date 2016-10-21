@@ -1,25 +1,48 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Upload new File</h1>
+<div style="margin:20px 100px 20px 100px;">
+<h3>Variants search</h3>
 <form action="" method=post enctype=multipart/form-data>
-  <label class="radio-inline">
-    <input type="radio" name="reference" id="GRCh37" value="GRCh37" checked> GRCh37
-  </label>
-  <!--
-  <label class="radio-inline">
-    <input type="radio" name="reference" id="GRCh38" value="GRCh38"> GRCh38
-  </label>-->
-  <input type=file name=file>
-  <p class="bg-primary">Output information</p>
-  <p class="bg-info">Output format</p>
+ 
+  <li><font size="3">This function is for users to input variants position or upload vcf file for searching their gene description, frequency/count and RELEL scores.</font></li>
+  <li><font size="3">Currently, Variants search only supports GRCh37/hg19.</font></li>
+    <li><font size="3">Input example:
+      <div style="margin-left:3em;">
+        chr3:38618546A&#062G<br>
+        chr10:93669G&#062C<br>
+      </div>
+    </font>
+    </li>
+
+    <table class="table table-bordered" width="100%">
+      <td class="success"><font size="4"><b>Step 1: Input data</b></font></td>
+      <tr>
+      <td>
+        <textarea name="variants_list" id="variants_list" cols="50" rows="5"></textarea>
+        <p>Or</p>
+        <input type=file name=file>
+      </td>
+</tr>
+<td class="success"><font size="4"><b>Step 2: Select output information</b></font></td>
+<tr>
+  <td class="info"><font size="3">Output format</font></td>
+</tr>
+  <tr>
+  <td>
   <label class="radio-inline">
     <input type="radio" name="format" id="freq" value="freq" checked> allele frequency
   </label>
   <label class="radio-inline">
     <input type="radio" name="format" id="count" value="count"> allele count
   </label>
-  <p class="bg-primary">Population</p>
-<p class="bg-info">1000genomes</p>
+  </td>
+</tr>
+<tr>
+  <td class="info"><font size="3">Population</font></td>
+</tr>
+  <td class="active"><font size="3">1000genomes</font></td>
+
+<tr><td>
 <input type="checkbox" name="Genomes" value="1000Genomes_EAS"><abbr title="East Asian"> 1000Genomes_EAS</abbr></label>
 <label class="checkbox-inline">
   <input type="checkbox" name="Genomes" value="1000Genomes_AMR"><abbr title="American"> 1000Genomes_AMR</abbr>
@@ -33,27 +56,33 @@
   <label class="checkbox-inline">
     <input type="checkbox" name="Genomes" value="1000Genomes_SAS"><abbr title="South Asian"> 1000Genomes_SAS</abbr>
   </label>
-
-  <p class="bg-info">Integrative Japanese Genome Variation Database</p>
+</td></tr>
+<td class="active"><font size="3">Integrative Japanese Genome Variation Database</font></td>
+<tr><td>
 <label class="checkbox-inline">
   <input type="checkbox" name="JPN" value="1KJPN"> 1KJPN
 </label>
 <label class="checkbox-inline">
   <input type="checkbox" name="JPN" value="2KJPN"> 2KJPN
 </label>
+</td></tr>
+ <td class="active"><font size="3">NHLBI Exome Sequencing Project(ESP)</font></td>
 
-
-<p class="bg-info">NHLBI Exome Sequencing Project(ESP)</p>
+ <tr><td>
 <label class="checkbox-inline">
   <input type="checkbox" name="ESP" value="AA"> African American
 </label>
 <label class="checkbox-inline">
   <input type="checkbox" name="ESP" value="EA"> European American
 </label>
+</td></tr>
+    </table>
+
 <p></p>
 <input type=submit value=Submit> 
 <input type="reset" value="Reset" id="btn_reset">
- 
+</div> 
  
   </form>
+  A
   {% endblock content %}           
