@@ -3,14 +3,18 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <title>{% block title %}{% endblock %}| Heart Net</title>
+
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    {% block css %} {% endblock css %}
+
     <!--<link rel="stylesheet" href="/static/CACHE/css/ad37e15525e9.css" type="text/css"/>-->
-    <!--<link href="/static/css/multiple-select.css" rel="stylesheet"/>-->
+    <!--<link href="/static/css/multiple-select.css" rel="stylesheet"/>
     <link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.1.2/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.1.2/css/buttons.dataTables.min.css">-->
   </head>
+
   <body>
     <div style="margin:50px 100px 20px 100px;">  
     <h1>Variants and expression database for heart disease</h1>
@@ -54,8 +58,8 @@
     </nav>
   </div>
 </div>
-  {% block content %}{% endblock %}
- 
+{% block content %}{% endblock %}
+{% block js %}
     <!-- Javscript library -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
@@ -66,7 +70,6 @@
 
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-
-    {% block js %}{% endblock %}
+    {% endblock js %}
   </body>
 </html>
