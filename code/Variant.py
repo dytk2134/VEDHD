@@ -30,15 +30,17 @@ def allowed_file(filename):
 """get allele frequency from database"""
 def get_freq(con,table,column,poplen,chr,pos,ref,alt):
     """Connect to MySQL database"""
-    freq_result = []
     sql_command="SELECT %s FROM allele_frequency.%s WHERE (chr =\"%s\") AND (pos=\"%s\") AND (ref = \"%s\") AND (alt = \"%s\")" % (column,table,chr,pos,ref,alt)
     con.execute(sql_command)
+    freq_result = {}
     result = con.fetchall()
     if len(result) > 0:
-        freq_result.extend(list(result[0]))
+        freq_result = dict(result[0])
     else:
         from itertools import repeat
-        freq_result.extend(repeat(".",poplen))
+        value = []
+        value.extend(repeat(".",poplen))
+        freq_result = dict(zip(list(column.split(",")),value))
     return freq_result
 
 
@@ -153,7 +155,7 @@ def upload_file():
     if request.method == 'POST':
 
         """Connect to MySQL database"""
-        db=MySQLdb.connect(host="localhost",user="user",passwd="bioinfo")
+        db=MySQLdb.connect(host="localhost",user="user",passwd="bioinfo",cursorclass=MySQLdb.cursors.DictCursor)
         con=db.cursor()
         """user input information"""
         Output_format = request.form["format"]
@@ -163,21 +165,30 @@ def upload_file():
 
         Final_result = [] #存最後的結果
         Final_result_title = ["chr","pos","ref","alt"]
+        Gene_annotation =["chr","pos","ref","alt","gene_name","description","FPKM(heart muscle)","Ranking/Total"]
+        Population_allele_freq = []
+        Predict=[]
         if len(Genomes_population)!=0:
             Genomes_population_column = ",".join(list(map(lambda orig_string:orig_string + "_Ref_" + Output_format +","+orig_string + "_Alt_"+ Output_format,Genomes_population)))
             Final_result_title.extend(Genomes_population_column.split(","))
+            Population_allele_freq.extend(Genomes_population_column.split(","))
         if "1KJPN" in JPN_population:
             JPN_1_column = "1KJPN_Ref_" + Output_format + "," + "1KJPN_Alt_" +Output_format
             Final_result_title.extend(JPN_1_column.split(","))
+            Population_allele_freq.extend(JPN_1_column.split(","))
         if "2KJPN" in JPN_population:
             JPN_2_column = "2KJPN_Ref_" + Output_format + "," + "2KJPN_Alt_" +Output_format
             Final_result_title.extend(JPN_2_column.split(","))
+            Population_allele_freq.extend(JPN_2_column.split(","))
         if len(ESP_population) !=0:
             ESP_population_column = ",".join(list(map(lambda orig_string:orig_string + "_Ref_" +Output_format +","+orig_string + "_Alt_" +Output_format,ESP_population)))
             Final_result_title.extend(ESP_population_column.split(","))
+            Population_allele_freq.extend(ESP_population_column.split(","))
         if len(request.form.getlist("REVEL")) != 0:
             Final_result_title.extend(["aaref","aaalt","REVEL"])
-        Final_result_title.extend(["gene_name","description","FPKM(Heart muscle)","Ranking/Total"])
+            Predict.extend(["aared","aaalt","REVEL"])
+        Final_result_title.extend(["gene_name","description","FPKM(heart muscle)","Ranking/Total"])
+        Predict.extend(["Func","ExonicFunc","AAChange","gerp++"])
 
         Result_line = 0
 
@@ -193,34 +204,33 @@ def upload_file():
 
             for var in variant_list:
                 vars = re.compile("([\dXYM]+):(\d+)([ATCG]+)>([ATCG]+)").split(var)
+                Final_result.append({})
                 if len(vars)<6:
-                    Final_result.append([var[0],".",".","."])
+                    Final_result[Result_line].update({"chr":vars[0],"pos":".","ref":".","alt":"."})
                     vartext_file.write(var[0]+"\t.\t.\t.\n")
                 else:
-                    Final_result.append(vars[1:5])
+                    Final_result[Result_line].update({"chr":vars[1],"pos":vars[2],"ref":vars[3],"alt":vars[4]})
                     vartext_file.write("chr"+vars[1]+"\t"+vars[2]+"\t"+str(int(vars[2])+len(vars[3])-1)+"\t"+vars[3]+"\t"+vars[4]+"\n")
 
-
                 if len(Genomes_population)!=0:
-                    Final_result[Result_line].extend(get_freq(con,"1000Genomes_5pop_"+Output_format,Genomes_population_column,len(Genomes_population)*2,vars[1],vars[2],vars[3],vars[4]))
+                    Final_result[Result_line].update(get_freq(con,"1000Genomes_5pop_"+Output_format,Genomes_population_column,len(Genomes_population)*2,vars[1],vars[2],vars[3],vars[4]))
                 if "1KJPN" in JPN_population:
-                    Final_result[Result_line].extend(get_freq(con,"1KJPN_"+Output_format,JPN_1_column,2,vars[1],vars[2],vars[3],vars[4]))
+                    Final_result[Result_line].update(get_freq(con,"1KJPN_"+Output_format,JPN_1_column,2,vars[1],vars[2],vars[3],vars[4]))
                 if "2KJPN" in JPN_population:
-                    Final_result[Result_line].extend(get_freq(con,"2KJPN_"+Output_format,JPN_2_column,2,vars[1],vars[2],vars[3],vars[4]))
+                    Final_result[Result_line].update(get_freq(con,"2KJPN_"+Output_format,JPN_2_column,2,vars[1],vars[2],vars[3],vars[4]))
                 if len(ESP_population) !=0:
-                    Final_result[Result_line].extend(get_freq(con,"ESP_"+Output_format,ESP_population_column,len(ESP_population)*2,vars[1],vars[2],vars[3],vars[4]))
+                    Final_result[Result_line].update(get_freq(con,"ESP_"+Output_format,ESP_population_column,len(ESP_population)*2,vars[1],vars[2],vars[3],vars[4]))
 
                 if len(request.form.getlist("REVEL"))!=0:
-                    Final_result[Result_line].extend(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,vars[1],vars[2],vars[3],vars[4]))
+                    Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,vars[1],vars[2],vars[3],vars[4]))
                 sql_command = "SELECT `gene_name`, `description`,`FPKM(heart muscle)`,`Ranking/Total` FROM Heart_gene_expression.Proteinaltas_RNA WHERE chr = \"%s\" AND %s BETWEEN Proteinaltas_RNA.start AND Proteinaltas_RNA.end" % (vars[1],vars[2])
-                print(sql_command)
                 con.execute(sql_command)
                 RNA_result = con.fetchall()
                 if len(RNA_result) > 0:
-                    Final_result[Result_line].extend(list(RNA_result[0]))
+                    Final_result[Result_line].update(RNA_result[0])
                 else:
                     from itertools import repeat
-                    Final_result[Result_line].extend(repeat(".",4))
+                    Final_result[Result_line].update({"gene_name":".","description":".","FPKM(heart muscle)":".","Ranking/Total":"."})
                 Result_line +=1
             vartext_file.close()
 
@@ -230,27 +240,28 @@ def upload_file():
             vcf_reader = vcf.Reader(open(os.path.join(app.config['UPLOAD_FOLDER'],filename)))
             for record in vcf_reader:
                 for idx in range(0,len(record.ALT)):
-                    Final_result.append([record.CHROM,record.POS,record.REF,record.ALT[idx]])
+                    Final_result.append({})
+                    Final_result[Result_line].update({"chr":record.CHROM,"pos":record.POS,"ref":record.REF,"alt":record.ALT[idx]})
                     if len(Genomes_population)!=0:
-                        Final_result[Result_line].extend(get_freq(con,"1000Genomes_5pop_"+Output_format,Genomes_population_column,len(Genomes_population)*2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        Final_result[Result_line].update(get_freq(con,"1000Genomes_5pop_"+Output_format,Genomes_population_column,len(Genomes_population)*2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
 
                     if "1KJPN" in JPN_population:
-                        Final_result[Result_line].extend(get_freq(con,"1KJPN_"+Output_format,JPN_1_column,2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        Final_result[Result_line].update(get_freq(con,"1KJPN_"+Output_format,JPN_1_column,2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
                     if "2KJPN" in JPN_population:
-                       Final_result[Result_line].extend(get_freq(con,"2KJPN_"+Output_format,JPN_2_column,2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                       Final_result[Result_line].update(get_freq(con,"2KJPN_"+Output_format,JPN_2_column,2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
                     if len(ESP_population) !=0:
-                        Final_result[Result_line].extend(get_freq(con,"ESP_"+Output_format,ESP_population_column,len(ESP_population)*2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        Final_result[Result_line].update(get_freq(con,"ESP_"+Output_format,ESP_population_column,len(ESP_population)*2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
                     if len(request.form.getlist("REVEL"))!=0:
-                        Final_result[Result_line].extend(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,record.CHROM,record.POS,record.REF,record.ALT[idx]))
                        #RNA expression
                     sql_command = "SELECT `gene_name`, `description`,`FPKM(heart muscle)`,`Ranking/Total` FROM Heart_gene_expression.Proteinaltas_RNA WHERE chr = \"%s\" AND %s BETWEEN Proteinaltas_RNA.start AND Proteinaltas_RNA.end" % (record.CHROM,record.POS)
                     con.execute(sql_command)
                     RNA_result = con.fetchall()
                     if len(RNA_result) > 0:
-                        Final_result[Result_line].extend(list(RNA_result[0]))
+                        Final_result[Result_line].update(RNA_result[0])
                     else:
                         from itertools import repeat
-                        Final_result[Result_line].extend(repeat(".",4))
+                        Final_result[Result_line].update({"gene_name":".","description":".","FPKM(heart muscle)":".","Ranking/Total":"."})
 
                     Result_line +=1
         print(Final_result)
@@ -273,11 +284,11 @@ def upload_file():
                 line = line.strip()
                 if Current_line !=1:
                     lines = line.split("\t")
-                    Final_result[Current_line-2].extend([lines[5],lines[8],lines[9],lines[10]])
+                    Final_result[Current_line-2].update({"Func":lines[5],"ExonicFunc":lines[8],"AAChange":lines[9],"gerp++":lines[10]})
 
         db.close()
             #os.remove(os.path.join(app.config['UPLOADED_ITEMS_DEST'], filename))
-        return render_template("Teresult.html",results = Final_result,keys = Final_result_title)
+        return render_template("Teresult.html",results = Final_result,keys = Final_result_title,Gene_annotation=Gene_annotation,Population_allele_freq=Population_allele_freq,Predict=Predict)
     return render_template('vcf.html')
 
 
