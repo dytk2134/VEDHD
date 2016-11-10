@@ -8,6 +8,8 @@ from decimal import Decimal
 import vcf
 import os
 from werkzeug import secure_filename
+import time
+
 
 UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
 ALLOWED_EXTENSIONS=set(['txt','vcf'])
@@ -112,7 +114,6 @@ def search():
                                 FinalResult_num +=1
                 NoData = aliase - aliase_Set
                 if len(NoData)!=0:
-                    from itertools import repeat
                     for no in NoData:
                         FinalResult.append([no])
                         FinalResult[FinalResult_num].extend(repeat("-",len(FinalResult_title)-1))
@@ -153,6 +154,7 @@ def search():
 @app.route('/vcf', methods=['GET','POST'])
 def upload_file():
     if request.method == 'POST':
+        from itertools import repeat
 
         """Connect to MySQL database"""
         db=MySQLdb.connect(host="localhost",user="user",passwd="bioinfo",cursorclass=MySQLdb.cursors.DictCursor)
@@ -166,8 +168,8 @@ def upload_file():
         Final_result = [] #存最後的結果
         Final_result_title = ["chr","pos","ref","alt"]
         Gene_annotation =["chr","pos","ref","alt","gene_name","description","FPKM(heart muscle)","Ranking/Total"]
-        Population_allele_freq = []
-        Predict=[]
+        Population_allele_freq = ["chr","pos","ref","alt"]
+        Predict=["chr","pos","ref","alt"]
         if len(Genomes_population)!=0:
             Genomes_population_column = ",".join(list(map(lambda orig_string:orig_string + "_Ref_" + Output_format +","+orig_string + "_Alt_"+ Output_format,Genomes_population)))
             Final_result_title.extend(Genomes_population_column.split(","))
@@ -211,15 +213,58 @@ def upload_file():
                 else:
                     Final_result[Result_line].update({"chr":vars[1],"pos":vars[2],"ref":vars[3],"alt":vars[4]})
                     vartext_file.write("chr"+vars[1]+"\t"+vars[2]+"\t"+str(int(vars[2])+len(vars[3])-1)+"\t"+vars[3]+"\t"+vars[4]+"\n")
+                tStart = time.time()
 
                 if len(Genomes_population)!=0:
-                    Final_result[Result_line].update(get_freq(con,"1000Genomes_5pop_"+Output_format,Genomes_population_column,len(Genomes_population)*2,vars[1],vars[2],vars[3],vars[4]))
+                    sql_command="SELECT %s FROM allele_frequency.1000Genomes_5pop_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt = \"%s\")" % (Genomes_population_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                    con.execute(sql_command)
+                    Genomes_result = con.fetchall()
+                    if len(Genomes_result)>0:
+                        Final_result[Result_line].update(Genomes_result[0])
+                    else:
+                        value = []
+                        value.extend(list(repeat(".",len(Genomes_population)*2)))
+                        Genomes_result = dict(zip(list(Genomes_population_column.split(",")),value))
+                        Final_result[Result_line].update(Genomes_result)
+                tEnd = time.time()
+                print(tEnd - tStart)
+
                 if "1KJPN" in JPN_population:
-                    Final_result[Result_line].update(get_freq(con,"1KJPN_"+Output_format,JPN_1_column,2,vars[1],vars[2],vars[3],vars[4]))
+                    sql_command="SELECT %s FROM allele_frequency.1KJPN_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt = \"%s\")" % (JPN_1_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                    con.execute(sql_command)
+                    JPN1_result = con.fetchall()
+                    if len(JPN1_result)>0:
+                        Final_result[Result_line].update(JPN1_result[0])
+                    else:
+
+                        value=[]
+                        value.extend(list(repeat(".",2)))
+                        JPN1_result =dict(zip(list(JPN_1_column.split(",")),value))
+                        Final_result[Result_line].update(JPN1_result)
+
                 if "2KJPN" in JPN_population:
-                    Final_result[Result_line].update(get_freq(con,"2KJPN_"+Output_format,JPN_2_column,2,vars[1],vars[2],vars[3],vars[4]))
+                    sql_command="SELECT %s FROM allele_frequency.2KJPN_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (JPN_2_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                    con.execute(sql_command)
+                    JPN2_result = con.fetchall()
+                    if len(JPN2_result)>0:
+                        Final_result[Result_line].update(JPN2_result[0])
+                    else:
+                        value=[]
+                        value.extend(repeat(".",2))
+                        JPN2_result =dict(zip(list(JPN_2_column.split(",")),value))
+                        Final_result[Result_line].update(JPN2_result)
+
                 if len(ESP_population) !=0:
-                    Final_result[Result_line].update(get_freq(con,"ESP_"+Output_format,ESP_population_column,len(ESP_population)*2,vars[1],vars[2],vars[3],vars[4]))
+                    sql_command="SELECT %s FROM allele_frequency.ESP_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (ESP_population_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                    con.execute(sql_command)
+                    ESP_result = con.fetchall()
+                    if len(ESP_result)>0:
+                        Final_result[Result_line].update(ESP_result[0])
+                    else:
+                        value=[]
+                        value.extend(repeat(".",len(ESP_population)*2))
+                        ESP_result =dict(zip(list(ESP_population_column.split(",")),value))
+                        Final_result[Result_line].update(ESP_result)
 
                 if len(request.form.getlist("REVEL"))!=0:
                     Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,vars[1],vars[2],vars[3],vars[4]))
@@ -238,19 +283,57 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
             vcf_reader = vcf.Reader(open(os.path.join(app.config['UPLOAD_FOLDER'],filename)))
+
             for record in vcf_reader:
                 for idx in range(0,len(record.ALT)):
                     Final_result.append({})
                     Final_result[Result_line].update({"chr":record.CHROM,"pos":record.POS,"ref":record.REF,"alt":record.ALT[idx]})
                     if len(Genomes_population)!=0:
-                        Final_result[Result_line].update(get_freq(con,"1000Genomes_5pop_"+Output_format,Genomes_population_column,len(Genomes_population)*2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        sql_command="SELECT %s FROM allele_frequency.1000Genomes_5pop_%s WHERE (chr=\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt = \"%s\")" % (Genomes_population_column,Output_format,record.CHROM,record.POS,record.REF,record.ALT[idx])
+                        con.execute(sql_command)
+                        Genomes_result = con.fetchall()
+                        if len(Genomes_result)>0:
+                            Final_result[Result_line].update(Genomes_result[0])
+                        else:
+                            value = []
+                            value.extend(repeat(".",len(Genomes_population)*2))
+                            Genomes_result = dict(zip(list(Genomes_population_column.split(",")),value))
+                            Final_result[Result_line].update(Genomes_result)
 
                     if "1KJPN" in JPN_population:
-                        Final_result[Result_line].update(get_freq(con,"1KJPN_"+Output_format,JPN_1_column,2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        sql_command="SELECT %s FROM allele_frequency.1KJPN_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt = \"%s\")" % (JPN_1_column,Output_format,record.CHROM,record.POS,record.REF,record.ALT[idx])
+                        con.execute(sql_command)
+                        JPN1_result = con.fetchall()
+                        if len(JPN1_result)>0:
+                            Final_result[Result_line].update(JPN1_result[0])
+                        else:
+                            value=[]
+                            value.extend(repeat(".",2))
+                            JPN1_result =dict(zip(list(JPN_1_column.split(",")),value))
+                            Final_result[Result_line].update(JPN1_result)
                     if "2KJPN" in JPN_population:
-                       Final_result[Result_line].update(get_freq(con,"2KJPN_"+Output_format,JPN_2_column,2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        sql_command="SELECT %s FROM allele_frequency.2KJPN_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (JPN_2_column,Output_format,record.CHROM,record.POS,record.REF,record.ALT[idx])
+                        con.execute(sql_command)
+                        JPN2_result = con.fetchall()
+                        if len(JPN2_result)>0:
+                            Final_result[Result_line].update(JPN2_result[0])
+                        else:
+                            value=[]
+                            value.extend(repeat(".",2))
+                            JPN2_result =dict(zip(list(JPN_2_column.split(",")),value))
+                            Final_result[Result_line].update(JPN2_result)
                     if len(ESP_population) !=0:
-                        Final_result[Result_line].update(get_freq(con,"ESP_"+Output_format,ESP_population_column,len(ESP_population)*2,record.CHROM,record.POS,record.REF,record.ALT[idx]))
+                        sql_command="SELECT %s FROM allele_frequency.ESP_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (ESP_population_column,Output_format,record.CHROM,record.POS,record.REF,record.ALT[idx])
+                        con.execute(sql_command)
+                        ESP_result = con.fetchall()
+                        if len(ESP_result)>0:
+                            Final_result[Result_line].update(ESP_result[0])
+                        else:
+                            value=[]
+                            value.extend(repeat(".",len(ESP_population)*2))
+                            ESP_result =dict(zip(list(ESP_population_column.split(",")),value))
+                            Final_result[Result_line].update(ESP_result)
+
                     if len(request.form.getlist("REVEL"))!=0:
                         Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,record.CHROM,record.POS,record.REF,record.ALT[idx]))
                        #RNA expression
@@ -269,10 +352,10 @@ def upload_file():
 #ANNOVAR
         import subprocess
         if file.filename == '':
-            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol refGene,gerp++gt2 -operation g,f -nastring . --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],"user_input.avinput"),os.path.join(app.config['UPLOAD_FOLDER'],"output"))
+            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol ensGene,gerp++gt2 -operation g,f -nastring . --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],"user_input.avinput"),os.path.join(app.config['UPLOAD_FOLDER'],"output"))
             print(cmd)
         else:
-            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol refGene,gerp++gt2 -operation g,f -nastring . -vcfinput --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],filename),os.path.join(app.config['UPLOAD_FOLDER'],"output"))
+            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol ensGene,gerp++gt2 -operation g,f -nastring . -vcfinput --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],filename),os.path.join(app.config['UPLOAD_FOLDER'],"output"))
 
         retcode = subprocess.call(cmd, shell=True)
         if retcode != 0: sys.exit(retcode)
