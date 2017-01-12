@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <div style="margin:20px 100px 20px 100px;">
-<h3>Variants search</h3>
+   <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/multiple-select.css') }}">
+ <h3>Variants search</h3>
 <form action="" method=post enctype=multipart/form-data>
  
   <li><font size="3">This function is for users to input variants position or upload vcf file for searching their gene description, frequency/count and RELEL scores.</font></li>
@@ -19,7 +20,7 @@
       <tr>
       <td>
         <textarea name="variants_list" id="variants_list" cols="50" rows="5"></textarea>
-        <p>Or</p>
+        <p>OR</p>
         <input type=file name=file>
       </td>
 </tr>
@@ -76,9 +77,59 @@
   <input type="checkbox" name="ESP" value="EA"> European American
 </label>
 </td></tr>
+
+
 <tr>
-  <td class="info"><font size="3">Functional prediction scores</font></td>
-  </tr>
+
+  <td class="active"><font size="3">Taiwan Biobank</font></td>
+ <tr><td>
+<label class="checkbox-inline">
+ <input type="checkbox" name="TWB" value="TWB"> Taiwanese
+</label>
+
+</td></tr>
+  <td class="info"><font size="3">gene expression profiles</font></td>
+</tr>
+<tr><td>
+<p>please select the tissue you want</p>
+<select multiple="multiple" id="tissue" name="tissue" style="width: 80%;" >
+  <option value="H_adipose_tissue">Adipose tissue</option>
+  <option value="H_adrenal_gland">Adrenal gland</option>
+  <option value="H_appendix">Appendix</option>
+  <option value="H_bone_marrow">Bone marrow</option>
+  <option value="H_cerebral_cortex">Cerebral cortex</option>
+  <option value="H_colon">Colon</option>
+  <option value="H_duodenum">Duodenum</option>
+  <option value="H_endometrium">Endometrium</option>
+  <option value="H_esophagus">Esophagus</option>
+  <option value="H_fallopian_tube">Fallopian tube</option>
+  <option value="H_gallbladder">Gallbladder</option>
+  <option value="H_heart_muscle">Heart muscle</option>
+  <option value="H_kidney">Kidney</option>
+  <option value="H_liver">Liver</option>
+  <option value="H_lung">Lung</option>
+  <option value="H_lymph_node">Lymph node</option>
+  <option value="H_ovary">Ovary</option>
+  <option value="H_pancreas">Pancreas</option>
+  <option value="H_placenta">Placenta</option>
+  <option value="H_prostate">Prostate</option>
+  <option value="H_rectum">Rectum</option>
+  <option value="H_salivary_gland">Salivary gland</option>
+  <option value="H_skeletal_muscle">Skeletal muscle</option>
+  <option value="H_skin">Skin</option>
+  <option value="H_small_intestine">Small intestine</option>
+  <option value="H_smooth_muscle">Smooth muscle</option>
+  <option value="H_spleen">Spleen</option>
+  <option value="H_stomach">Stomach</option>
+  <option value="H_testis">Testis</option>
+  <option value="H_thyroid_gland">Thyroid gland</option>
+  <option value="H_tonsil">Tonsil</option>
+  <option value="H_urinary_bladder">Urinary bladder</option>
+
+</select>
+</tr></td>
+<td class="info"><font size="3">Functional prediction scores</font></td>
+</tr>
  <tr><td>
 <label class="checkbox-inline">
   <input type="checkbox" name="REVEL" value="REVEL"> <abbr title="Rare exome variant ensemble learner">REVEL</abbr> scores</label>
@@ -90,7 +141,12 @@
 <input type=submit value=Submit> 
 <input type="reset" value="Reset" id="btn_reset">
 </div> 
- 
-  </form>
-  A
+   </form>
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+   <script src= "static/styles/multiple-select.js"></script>
+   <script>
+     $("select").multipleSelect({
+       filter: true
+     });
+   </script>
   {% endblock content %}           

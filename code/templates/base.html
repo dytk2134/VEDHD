@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>{% block title %}{% endblock %}| Heart Net</title>
+    <title>{% block title %}{% endblock %}| VariED</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -17,7 +17,7 @@
 
   <body>
     <div style="margin:50px 100px 20px 100px;">  
-    <h1>Variants and expression database for heart disease</h1>
+    <h1>VariED</h1>
   
 
     <nav class="navbar navbar-default">
@@ -37,9 +37,9 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li><a href="http://172.16.0.204:5000/search">Heart Gene Expression </a></li>
-            <li><a href=http://172.16.0.204:5000/vcf>vcf</a></li>
-            <li><a href="http://172.16.0.204:8000/variants">variants</a></li>
+            <li><a href="http://172.16.0.204:5000/search">Expression profiles</a></li>
+            <li><a href=http://172.16.0.204:5000/vcf>Variants search</a></li>
+            <li><a href="http://172.16.0.204:5000/Tutorial">Tutorial</a></li>
 
           </ul>
 <!--
@@ -51,7 +51,7 @@
           </form>
           -->
           <ul class="nav navbar-nav navbar-right">
-            <li><a href=http://172.16.0.204:5000/Help">Help</a></li>
+            <li><a href=http://172.16.0.204:5000/Contect">Contect</a></li>
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
@@ -66,10 +66,18 @@
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
    
     <!-- jQuery -->
-    <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.2.min.js"></script>
+    <!--script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.2.min.js"></script-->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
     {% endblock js %}
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted">
+          Developed by Bioinformatics and Biostatistics Core Lab, Center of Genomic Medicine, National Taiwan University.
+        </p>
+      </div>
+    </footer>
   </body>
 </html>
