@@ -5,7 +5,7 @@
  <h3>Variants search</h3>
 <form action="" method=post enctype=multipart/form-data>
  
-  <li><font size="3">This function is for users to input variants position or upload vcf file for searching their gene description, frequency/count and RELEL scores.</font></li>
+  <li><font size="3">This function is for users to input the chromosomal coordinates of variants or upload Variant Call Format (vcf) file for searching their gene description, frequency/count and REVEL scores.</font></li>
   <li><font size="3">Currently, Variants search only supports GRCh37/hg19.</font></li>
     <li><font size="3">Input example:
       <div style="margin-left:3em;">
@@ -133,6 +133,10 @@
  <tr><td>
 <label class="checkbox-inline">
   <input type="checkbox" name="REVEL" value="REVEL"> <abbr title="Rare exome variant ensemble learner">REVEL</abbr> scores</label>
+<div id="select_REVEL" style="text-indent : 2em ;">
+  <label class="radio-inline"><input type="radio" name="REVEL_threshold" id="REVEL-id" value="0.5" checked><abbr title="75.4% of disease mutations, 10.9% of neutral variants and 12.4% of all ESVs have a REVEL score above 0.5"> 0.5</abbr></label>
+  <label class="radio-inline"><input type="radio" name="REVEL_threshold" id="REVEL-id" value="0.75" ><abbr title="52.1% of disease mutations, 3.3% of neutral variants and 4.1% of all ESVs have a REVEL score above 0.75"> 0.75</abbr></label>
+</div>
 </td></tr>
 
     </table>
@@ -147,6 +151,18 @@
    <script>
      $("select").multipleSelect({
        filter: true
+     });
+   </script>
+
+   <script>
+     $("div[id='select_REVEL']").hide();
+     $("input[name='REVEL']").change(function(){
+       if ($("input[name='REVEL'").is(':checked')) {
+         $("div[id='select_REVEL']").show();
+       }
+       else {
+         $("div[id='select_REVEL']").hide();      
+       }
      });
    </script>
   {% endblock content %}           

@@ -135,7 +135,6 @@
       buttons: [
         'copy','csv', 'excel', 'print'
       ],
-      "bSort": false,
       "scrollX": true
     } );
   } );
@@ -149,11 +148,12 @@
       buttons: [
         'copy','csv', 'excel', 'print'
       ],
-      "bSort" : false,
       "scrollX": true
     } );
   } );
 </script>
+<script src="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></script>
+
 <script>
   $(document).ready(function() {
 
@@ -162,16 +162,27 @@
       buttons: [
         'copy','csv', 'excel', 'print'
       ],
-      "bSort" : false,
-      "scrollX": true
-    } );
+      "scrollX": true,
+      "createdRow": function ( row, data, index ) {
+        $('td',row).eq(4).css('background-color', '#f7b479')
+        if ( data[4] * 1 == 3 ) {
+          $('td', row).eq(4).css('color', 'red');
+        }
+    
+        
+        else if ( data[4] * 1 >= 0 ) {
+          $('td', row).eq(4).css('color', 'blue');
+        }
+      }
+
+         } );
   } );
 
 </script>
   <!--tabs-->
   <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
- <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/tabs.css') }}">
-<script type="text/javascript">
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/tabs.css') }}">
+ <script type="text/javascript">
   $(function(){
     var _showTab = 0;
     var $defaultLi = $('ul.tabs li').eq(_showTab).addClass('active');

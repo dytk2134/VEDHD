@@ -262,7 +262,12 @@ def geneselect():
 
 @app.route('/vcf', methods=['GET','POST'])
 def upload_file():
+
     if request.method == 'POST':
+        """Create a uuid"""
+        import uuid
+        User_id = str(uuid.uuid1())
+
         from itertools import repeat
 
         """Connect to MySQL database"""
@@ -275,7 +280,7 @@ def upload_file():
         JPN_population = request.form.getlist("JPN")
         ESP_population = request.form.getlist("ESP")
         tissue = request.form.getlist("tissue")
-
+        REVEL_threshold = float(request.form["REVEL_threshold"])
 
 
         """table title"""
@@ -291,7 +296,7 @@ def upload_file():
        #add different population to allele freq table
 
         Population_allele_freq = ["chr","pos","ref","alt"]
-        Predict=["chr","pos","ref","alt"]
+        Predict=["chr","pos","ref","alt","Index"]
         if len(Genomes_population)!=0:
             Genomes_population_column = ",".join(list(map(lambda orig_string:orig_string + "_Ref_" + Output_format +","+orig_string + "_Alt_"+ Output_format,Genomes_population)))
             Final_result_title.extend(Genomes_population_column.split(","))
@@ -318,7 +323,7 @@ def upload_file():
         Final_result_title.extend(["gene_name_ensembl","gene_description"])
 
         Final_result_title.extend(tissue_column.split(","))
-        Predict.extend(["Func","ExonicFunc","AAChange","gerp++"])
+        Predict.extend(["gerp++","Func","ExonicFunc","AAChange"])
 
         Result_line = 0
 
@@ -330,7 +335,7 @@ def upload_file():
             variant_text = multiple_replace(request.form['variants_list'],{"\"":"","\'":"","`":"","%":""})
             variant_text = variant_text.upper()
             variant_list =list(filter(None,re.split(regexPattern,variant_text)))
-            vartext_file = open(os.path.join(app.config['UPLOAD_FOLDER'],"user_input.avinput"),"w")
+            vartext_file = open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".avinput"),"w")
 
             for var in variant_list:
                 vars = re.compile("([\dXYM]+):(\d+)([ATCG]+)>([ATCG]+)").split(var)
@@ -405,15 +410,12 @@ def upload_file():
                         Final_result[Result_line].update(TWB_result)
 
 
-                if len(request.form.getlist("REVEL"))!=0:
-                    Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,vars[1],vars[2],vars[3],vars[4]))
-
 
 
                 if len(tissue)!=0:
-                    sql_command = "SELECT `gene_name_ensembl`, `gene_description`,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (tissue_column,vars[1],vars[2])
+                    sql_command = "SELECT `gene_name_ensembl`, `gene_description`,H_heart_muscle_Rank,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (tissue_column,vars[1],vars[2])
                 if len(tissue)==0:
-                    sql_command = "SELECT `gene_name_ensembl`, `gene_description` FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (vars[1],vars[2])
+                    sql_command = "SELECT `gene_name_ensembl`,`gene_description`,`H_heart_muscle_Rank` FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (vars[1],vars[2])
 
                 con.execute(sql_command)
                 RNA_result = con.fetchall()
@@ -426,11 +428,12 @@ def upload_file():
                     value.extend(repeat(".",len(tissue)*2))
                     RNA_result =dict(zip(list(tissue_column.split(",")),value))
                     Final_result[Result_line].update(RNA_result)
+                Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,vars[1],vars[2],vars[3],vars[4]))
                 Result_line +=1
             vartext_file.close()
 
         elif file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+            filename = User_id + secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
             vcf_reader = vcf.Reader(open(os.path.join(app.config['UPLOAD_FOLDER'],filename)))
 
@@ -495,13 +498,11 @@ def upload_file():
                             TWB_result =dict(zip(list(TWB_column.split(",")),value))
                             Final_result[Result_line].update(TWB_result)
 
-                    if len(request.form.getlist("REVEL"))!=0:
-                        Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,record.CHROM,record.POS,record.REF,record.ALT[idx]))
-                       #RNA expression
+                    #RNA expression
                     if len(tissue)!=0:
-                        sql_command = "SELECT `gene_name_ensembl`,`gene_description`,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (tissue_column,record.CHROM,record.POS)
+                        sql_command = "SELECT `gene_name_ensembl`,`gene_description`,H_heart_muscle_Rank,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (tissue_column,record.CHROM,record.POS)
                     if len(tissue)==0:
-                        sql_command = "SELECT `gene_name_ensembl`,`gene_description` FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (record.CHROM,record.POS)
+                        sql_command = "SELECT `gene_name_ensembl`,`gene_description`,H_heart_muscle_Rank FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (record.CHROM,record.POS)
                     con.execute(sql_command)
                     RNA_result = con.fetchall()
                     if len(RNA_result) > 0:
@@ -512,24 +513,26 @@ def upload_file():
                         value.extend(repeat(".",len(tissue)*2))
                         RNA_result =dict(zip(list(tissue_column.split(",")),value))
                         Final_result[Result_line].update(RNA_result)
-
+                    Final_result[Result_line].update(get_freq(con,"REVEL","aaref,aaalt,REVEL",3,record.CHROM,record.POS,record.REF,record.ALT[idx]))
                     Result_line +=1
-        print(Final_result)
+
        #ANNOVAR
-        tStart = time.time()
 
         import subprocess
+        import sys
+
+
         if file.filename == '':
-            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol ensGene,gerp++gt2 -operation g,f -nastring . --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],"user_input.avinput"),os.path.join(app.config['UPLOAD_FOLDER'],"output"))
-            print(cmd)
+            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol ensGene,gerp++gt2 -operation g,f -nastring . --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],User_id +".avinput"),os.path.join(app.config['UPLOAD_FOLDER'],User_id))
+
         else:
-            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol ensGene,gerp++gt2 -operation g,f -nastring . -vcfinput --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],filename),os.path.join(app.config['UPLOAD_FOLDER'],"output"))
+            cmd='/home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/table_annovar.pl %s /home/bioinfo/Heart_gene_database/HeartInter/code/tool/annovar/humandb/ -buildver hg19 -remove -protocol ensGene,gerp++gt2 -operation g,f -nastring . -vcfinput --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],filename),os.path.join(app.config['UPLOAD_FOLDER'],User_id))
 
         retcode = subprocess.call(cmd, shell=True)
         if retcode != 0: sys.exit(retcode)
         Current_line = 0
         Final_result_title.extend(["Func.refGene","ExonicFunc.refGene","AAChange.refGene","gerp++gt2"])
-        with open(os.path.join(app.config['UPLOAD_FOLDER'],"output.hg19_multianno.txt"),"r") as annovar:
+        with open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".hg19_multianno.txt"),"r") as annovar:
             for line in annovar:
                 Current_line+=1
                 line = line.strip()
@@ -538,11 +541,43 @@ def upload_file():
                     Final_result[Current_line-2].update({"Func":lines[5],"ExonicFunc":lines[8],"AAChange":lines[9],"gerp++":lines[10]})
 
         db.close()
-        tEnd = time.time()
-        print(tEnd-tStart)
-            #os.remove(os.path.join(app.config['UPLOADED_ITEMS_DEST'], filename))
-        return render_template("Teresult.html",results = Final_result,keys = Final_result_title,Gene_annotation=Gene_annotation,Population_allele_freq=Population_allele_freq,Predict=Predict)
+        """Add index"""
+        for resaddID in Final_result:
+            if resaddID['Func'] == "intergenic" or resaddID['Func'] == "intronic" or resaddID['ExonicFunc']=="synonymous SNV":
+                resaddID['Index'] = 0
+            if resaddID['REVEL']!= ".":
+                if resaddID['ExonicFunc'] == "nonsynonymous SNV" or float(resaddID['REVEL'])<REVEL_threshold:
+                    resaddID['Index'] = 1
+                if resaddID['ExonicFunc'] == "nonsynonymous SNV":
+                    if float(resaddID['REVEL'])>REVEL_threshold or resaddID['Func'] == "splicing":
+                        resaddID['Index'] = 2
+                        if resaddID['H_heart_muscle_Rank']!=".":
+                            if eval(resaddID['H_heart_muscle_Rank'])<0.25:
+                                resaddID['Index'] = 3
+                        if resaddID['gerp++']!=".":
+                                resaddID['Index'] = 3
+            elif resaddID['REVEL']== ".":
+                if resaddID['ExonicFunc'] == "nonsynonymous SNV":
+                    resaddID['Index'] = 1
+                if resaddID['Func'] == "splicing":
+                    resaddID['Index'] = 2
+                    if resaddID['H_heart_muscle_Rank']!=".":
+                        if eval(resaddID['H_heart_muscle_Rank'])<0.25:
+                            resaddID['Index'] = 3
+                    if resaddID['gerp++']!=".":
+                            resaddID['Index'] = 3
+            if "Index" not in resaddID:
+                resaddID['Index'] = 0
+
+
+        """remove user files"""
+        import glob
+        for rmfile in glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], User_id+"*")):
+            os.remove(rmfile)
+
+        return render_template("Teresult.html",results = Final_result,Gene_annotation=Gene_annotation,Population_allele_freq=Population_allele_freq,Predict=Predict)
     return render_template('vcf.html')
+
 
 @app.route("/Tutorial")
 def Tutorial():
@@ -550,4 +585,4 @@ def Tutorial():
 
 
 if __name__=='__main__':
-    app.run(host='0.0.0.0',port=5000,debug=True)
+    app.run(host='0.0.0.0',port=5000,debug=True,threaded=True)

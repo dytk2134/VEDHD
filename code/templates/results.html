@@ -51,9 +51,19 @@
 			    dom: 'Bfrtip',
 			    buttons: [
 			        'copy','csv', 'excel', 'print'
-			    ]
+          ]
+          ,"scrollX": true
 			} );
 	} );
+</script>
+<script>
+  $(document).ready(function() {
+    var table = $('#jsontable').DataTable();
+    $('#jsontable tbody').on('click','tr',function(){
+      var data = table.row(this).data();
+      alert(data[11]);
+    });
+  });
 </script>
   {% endblock content %}
   
