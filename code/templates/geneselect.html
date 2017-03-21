@@ -5,10 +5,10 @@
            {% for dupl in keys %}
            <p> {{ dupl }} </p>
          
-           <table class="table">
+           <table class="table table-striped">
              <thead>
                <tr>
-                 <th> </th>
+                 <th>    </th>
                  <th>User_input </th>
                <th>gene_name_ensembl </th>
                <th>gene_name_NCBI</th>
@@ -24,7 +24,7 @@
              <tbody>
                {% for k in results[dupl] %}  
                <tr>
-                 <td><label class="radio"><input type="radio" name="{{dupl}}" id="{{dupl}}" value="{{k}}" > 
+                 <td><label class="radio"><input type="radio" name="{{dupl}}" id="{{dupl}}" value="{{k}}" checked> 
                  </label></td>
                  <td>{{ k["User_input"] }} </td>
                  <td>{{ k["gene_name_ensembl"] }} </td>
@@ -45,10 +45,13 @@
           <input type="hidden" name="duplname" value="{{ keys }}">
           <input type="hidden" name="Final" value="{{ Final }}">
           <input type="hidden" name="Annotation_table" value="{{ Annotation_table }}">
-          <input type="hidden" name= "Annotation_title", value="{{ Annotation_title }}">
-          <input type="hidden" name="Human_exp", value="{{ Human_exp }}">
-          <input type="hidden" name="Mouse_exp",value="{{ Mouse_exp }}">
-          <input type="hidden" name="Zebrafish_exp", value="{{ Zebrafish_exp }}">
+          <input type="hidden" name= "Annotation_title" value="{{ Annotation_title }}">
+          <input type="hidden" name="Human_exp" value="{{ Human_exp }}">
+          <input type="hidden" name="Mouse_exp" value="{{ Mouse_exp }}">
+          <input type="hidden" name="Zebrafish_exp" value="{{ Zebrafish_exp }}">
+          <input type="hidden" name="Human_orthologs" value="{{ Human_orthologs }}">
+          <input type="hidden" name="Mouse_orthologs" value="{{ Mouse_orthologs }}">
+          <input type="hidden" name="Zebrafish_orthologs" value="{{ Zebrafish_orthologs }}">
 
           <button type="submit" name="submit" class="btn btn-default">Submit</button>
         </form>

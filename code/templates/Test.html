@@ -6,9 +6,9 @@
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">-->
  <div style="margin:20px 100px 20px 100px;">
    
-   <form action="/Variants_search" method="get"> 
-     <input id="pressme" type="button" value="Download">
-     <div class="table_tab">
+   
+
+<div class="table_tab">
   <ul class="tabs">
   
       <li><a href="#tab1">Gene annotation</a></li>
@@ -17,7 +17,7 @@
     </ul>
     <div class="tab_container">
       <div id="tab1" class="tab_content">
-        <table id="genoano" class="display compact" cellspacing="0" width="100%">
+        <table id="genoano" class="display" cellspacing="0" width="100%">
           <thead>
             <tr>
               {% for ano in Gene_annotation %}
@@ -33,10 +33,20 @@
               {% endfor %}
             </tr>
           </tfoot>
-                  </table>
+          <tbody>
+            {% for r in results %}
+          </tr>
+            {% for anokey in Gene_annotation %}
+            
+              <td>{{ r[anokey] }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
   </div>
       <div id="tab2" class="tab_content">
-        <table id="population" class="display compact" cellspacing="0" width="100%">
+        <table id="population" class="display" cellspacing="0" width="100%">
           <thead>
             <tr>
               {% for pop in Population_allele_freq %}
@@ -52,11 +62,21 @@
               {% endfor %}
             </tr>
           </tfoot>
-                 </table>
+          <tbody>
+            {% for r in results %}
+          </tr>
+            {% for popkey in Population_allele_freq %}
+            
+              <td>{{ r[popkey] }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
       <div id="tab3" class="tab_content">
 
-<table id="Predict" class="display compact" cellspacing="0" width="100%">
+<table id="Predict" class="display" cellspacing="0" width="100%">
           <thead>
             <tr>
               {% for pre in Predict %}
@@ -72,7 +92,16 @@
               {% endfor %}
             </tr>
           </tfoot>
-         
+          <tbody>
+            {% for r in results %}
+          </tr>
+            {% for prekey in Predict %}
+            
+              <td>{{ r[prekey] }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
         </table>
       </div>
     </div>
@@ -80,7 +109,8 @@
 </div>
 
 
-</form>
+
+
 
 
      {% block js %}
@@ -96,72 +126,29 @@
   <script type="text/javascript" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0/datatables.min.js"></script>
 
   {% endblock js %}
- <!--tabs-->
-  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/tabs.css') }}">
-  <script>
-    $(document).ready(function(){
-      $('#pressme').click(function(){
-        function test_func(data) {
-          console.log(data);
-          return data;
-        }
-        data = test_func({{ Export_result|tojson|safe }});
-        var csvContent = "";
-        data.forEach(function(infoArray, index){
-          dataString = infoArray.join("\",\"");
-          dataString = "\"".concat(dataString);
-          dataString = dataString.concat("\"");
-          csvContent += dataString + "\n";
-          
-        });
-        var blob = new Blob([csvContent], {type: 'text/csv'});
-        var filename = "Variants_search_result.csv";
-        if(window.navigator.msSaveOrOpenBlob) {
-          window.navigator.msSaveBlob(blob, filename);
-        }
-        else{
-          var elem = window.document.createElement('a');
-            elem.href = window.URL.createObjectURL(blob);
-            elem.download = filename;
-            document.body.appendChild(elem);
-            elem.click();
-            document.body.removeChild(elem);
-      }
-               
-      });
-    });
-</script>
-  <script>
-      $(document).ready(function() {
+
+<script>
+  $(document).ready(function() {
 
     $('#genoano').DataTable( {
-      "processing": true,
-      "serverSide":true,
-      "ajax": {
-        "url":"/Variants_search",
-        "data":{
-          "User_id":"{{ User_id }}",
-          "table_column":"{{ Gene_annotation|join(',') }}"
-        }},
-        "scrollX": true
+      dom: 'Bfrtip',
+      buttons: [
+        'copy','csv', 'excel', 'print'
+      ],
+      "scrollX": true
     } );
-      });
+  } );
 </script>
 
 <script>
   $(document).ready(function() {
 
     $('#population').DataTable( {
-      "processing": true,
-      "serverSide":true,
-      "ajax": {
-        "url":"/Variants_search",
-        "data":{
-          "User_id":"{{ User_id }}",
-          "table_column":"{{ Population_allele_freq|join(',') }}"
-        }},     
-        "scrollX": true
+      dom: 'Bfrtip',
+      buttons: [
+        'copy','csv', 'excel', 'print'
+      ],
+      "scrollX": true
     } );
   } );
 </script>
@@ -172,15 +159,11 @@
 
     $('#Predict').DataTable( {
 
-     "processing": true,
-      "serverSide":true,
-      "ajax": {
-        "url":"/Variants_search",
-        "data":{
-          "User_id":"{{ User_id }}",
-          "table_column":"{{ Predict|join(',') }}"
-        }},
-        "scrollX": true,
+      dom: 'Bfrtip',
+      buttons: [
+        'copy','csv', 'excel', 'print'
+      ],
+      "scrollX": true,
       "createdRow": function ( row, data, index ) {
         $('td',row).eq(4).css('background-color', '#f7b479')
         if ( data[4] * 1 == 3 ) {
@@ -214,5 +197,8 @@
     });
       });
     </script>
- 
+  <!--tabs-->
+  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/tabs.css') }}">
+
 {% endblock content %}  

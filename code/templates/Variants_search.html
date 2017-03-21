@@ -1,9 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
 <div style="margin:20px 100px 20px 100px;">
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <ul class=flashes>
+    {% for message in messages %}
+      <script type="text/javascript">
+        alert("{{ message }}")
+    </script>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endwith %}
+
    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/multiple-select.css') }}">
  <h3>Variants search</h3>
-<form action="" method=post enctype=multipart/form-data>
+<form action="/Variants_search" method=post enctype=multipart/form-data>
  
   <li><font size="3">This function is for users to input the chromosomal coordinates of variants or upload Variant Call Format (vcf) file for searching their gene description, frequency/count and REVEL scores.</font></li>
   <li><font size="3">Currently, Variants search only supports GRCh37/hg19.</font></li>
@@ -128,8 +140,8 @@
 
 </select>
 </tr></td>
-<td class="info"><font size="3">Functional prediction scores</font></td>
-</tr>
+<td class="info"><font size="3">Functional prediction</font></td>
+
  <tr><td>
 <label class="checkbox-inline">
   <input type="checkbox" name="REVEL" value="REVEL"> <abbr title="Rare exome variant ensemble learner">REVEL</abbr> scores</label>
@@ -139,6 +151,11 @@
 </div>
 </td></tr>
 
+<td class="info"><font size="3">Clinical interpretation</font></td>
+ <tr><td>
+<label class="checkbox-inline">
+  <input type="checkbox" name="InterVar" value="InterVar"><abbr title="A bioinformatics software tool for clinical interpretation of genetic variants by ACMG2015 guideline"> InterVar</abbr></label>
+</td></tr>
     </table>
 
 <p></p>

@@ -5,7 +5,7 @@
   <li><font size="3">This function is for users to query gene annotation and tissue-specific gene expression profiles.</font></li>
   <p></P>
 
-<form action="/search" method=post>
+<form action="/Expression_profiles" method=post>
   <table class="table table-bordered" width="100%">
     <td class="success"><font size="4"><b>Step1: select the species and reference genome</b></font></td>
     <tr><td class="info"><font size="3">Output gene annotation</font></td></tr>
@@ -68,7 +68,14 @@
         </select>
         <p><b>Mus musculus(House mouse)</b></p>
         <select multiple="multiple" id="expression" name="Mouse_exp" style="width: 80%;" >
-
+          <option value="M_brain">Brain</option>
+          <option value="M_heart">Heart</option>
+          <option value="M_kidney">Kidney</option>
+          <option value="M_liver">Liver</option>
+          <option value="M_Lung">Lung</option>
+          <option value="M_spleen">Spleen</option>
+          <option value="M_testis">Testis</option>
+          <option value="M_thymus">Thymus</option>
         </select>
         <p><b>Danio rerio(Zebrafish)</b></p>
         <select multiple="multiple" id="expression" name="Zebrafish_exp" style="width: 80%;" >
@@ -87,11 +94,11 @@
             <option value="Ensembl_id">Ensembl Gene Id</option>
           </select>
           <br>
-          <textarea name="search_list" id="search_list" cols="50" rows="3"></textarea><br>
+          <textarea name="search_list" id="search_list" cols="50" rows="3" required="required"></textarea><br>
         </div>
     </tr></td>
  </table>
-    <input type=submit value=Submit>
+    <input type=submit value=submit id="submit">
     
 
  </form>
@@ -110,52 +117,59 @@
 
   </div>
   <!-- jQuery v1.11.3 -->
-      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-          <!-- Bootstrap v3.3.6 compiled and minified Javascript -->
-              <script
-                      src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
-                            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
-                                  crossorigin="anonymous">
-                                      </script>
-	<script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <!-- Bootstrap v3.3.6 compiled and minified Javascript -->
+  <script
+    src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+    integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+    crossorigin="anonymous">
+  </script>
+  <script>
 $("span[name='needed']").hide();
 //$("span[name='needed2']").hide();
 //$("div[id='select_a']").hide();
 $("div[id='select_m']").hide();
 $("div[id='select_z']").hide();
-$("#submit").click(function() {  
-  
-  if($( "input[name='expression']:checked" ).length==0)
+
+$("#submit").click(function(){
+  var options = document.getElementById('expression').options,count = 0;
+  for (var i=0; i < options.length; i++) {
+    if (options[i].selected) count++;
+  }
+  if( count==0)
   {
     $("span[name='needed']").show();
-    return false;
+        return false;
   }
 }); 
 </script>
 
 <script>
-$("input[name='data_Annotation']").change(function(){
-        if ($("#Human-id").is(':checked')) {
-                
-                $("div[id='select_h']").show();
-                $("div[id='select_m']").hide();
-                $("div[id='select_z']").hide();
-                //$("#cellline").attr('required', '');
-            }
-        if ($("#Mouse-id").is(':checked'))
+  $("input[name='data_Annotation']").change(function(){
+    if ($("#Human-id").is(':checked')) {
+
+      $("#GRCh37-id").prop("checked", true);
+      $("div[id='select_h']").show();
+      $("div[id='select_m']").hide();
+      $("div[id='select_z']").hide();
+      //$("#cellline").attr('required', '');
+    }
+    if ($("#Mouse-id").is(':checked'))
+      {  
+        $("#GRCm38-id").prop("checked", true);            
+        $("div[id='select_h']").hide();
+        $("div[id='select_m']").show();
+        $("div[id='select_z']").hide();
+        //$("#cellline").removeAttr('required');
+      }
+      if ($("#Zebrafish-id").is(':checked'))
         {   
-                $("div[id='select_h']").hide();
-                $("div[id='select_m']").show();
-                $("div[id='select_z']").hide();
-                //$("#cellline").removeAttr('required');
+          $("#GRCz10-id").prop("checked", true);  
+          $("div[id='select_h']").hide();
+          $("div[id='select_m']").hide();
+          $("div[id='select_z']").show();
+          //$("#cellline").removeAttr('required');
         }
-               if ($("#Zebrafish-id").is(':checked'))
-        {   
-                $("div[id='select_h']").hide();
-                $("div[id='select_m']").hide();
-                $("div[id='select_z']").show();
-                //$("#cellline").removeAttr('required');
-        }
-    });
-  </script>
+  });
+</script>
   {% endblock content %}
