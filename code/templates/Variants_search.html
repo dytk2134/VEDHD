@@ -51,7 +51,7 @@
   </td>
 </tr>
 <tr>
-  <td class="info"><font size="3">Population</font></td>
+  <td class="info"><font size="3">Population    </font><input type="checkbox" onclick="checkAll(this)">Select All</td>
 </tr>
   <td class="active"><font size="3">1000genomes</font></td>
 
@@ -149,12 +149,14 @@
   <label class="radio-inline"><input type="radio" name="REVEL_threshold" id="REVEL-id" value="0.5" checked><abbr title="75.4% of disease mutations, 10.9% of neutral variants and 12.4% of all ESVs have a REVEL score above 0.5"> 0.5</abbr></label>
   <label class="radio-inline"><input type="radio" name="REVEL_threshold" id="REVEL-id" value="0.75" ><abbr title="52.1% of disease mutations, 3.3% of neutral variants and 4.1% of all ESVs have a REVEL score above 0.75"> 0.75</abbr></label>
 </div>
+ <input type="checkbox" name="CADD" value="CADD"> <abbr title="Combined Annotation Dependent Depletion">CADD</abbr> scores</label>
 </td></tr>
 
 <td class="info"><font size="3">Clinical interpretation</font></td>
  <tr><td>
 <label class="checkbox-inline">
   <input type="checkbox" name="InterVar" value="InterVar"><abbr title="A bioinformatics software tool for clinical interpretation of genetic variants by ACMG2015 guideline"> InterVar</abbr></label>
+<input type="checkbox" name="ClinVar" value="ClinVar"> ClinVar</label>
 </td></tr>
     </table>
 
@@ -165,6 +167,17 @@
    </form>
    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
    <script src= "static/styles/multiple-select.js"></script>
+   <script>
+     function checkAll(bx) {
+       var cbs = document.getElementsByTagName('input');
+       for(var i=0; i < cbs.length; i++) {
+         if(cbs[i].name == 'Genomes' || cbs[i].name == 'JPN' || cbs[i].name == 'ESP' || cbs[i].name == 'TWB') {
+           cbs[i].checked = bx.checked;
+         }
+
+       }
+     }
+   </script>
    <script>
      $("select").multipleSelect({
        filter: true
