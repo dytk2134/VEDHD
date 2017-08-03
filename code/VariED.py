@@ -13,10 +13,23 @@ from itertools import repeat
 from collections import namedtuple
 import gzip
 
+#path
+#apache
+
+UPLOAD_FOLDER='/var/www/html/varied/upload/'
+InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
+CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
+ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
+humandb_path = '/var/www/html/varied/annovar/humandb/'
+
+#test
+"""
 UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
 InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
 CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
-
+ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
+humandb_path = '/var/www/html/varied/annovar/humandb/'
+"""
 ALLOWED_EXTENSIONS=set(['txt','vcf'])
 app = Flask(__name__)
 app.secret_key = "^awed@1qh)#1ozd0+2dx*d117l3cr!@rfnr238jducwmpt0cd_"
@@ -57,6 +70,7 @@ def Expression_profiles():
         Annotation_column = ",".join(list(map(lambda orig_string:Annotation_table+"."+orig_string,Annotation_title[1:])))
         Annotation_column = Annotation_column + ",family_ID"
 
+
         #tissue list user select
         Human_exp = request.form.getlist("Human_exp")
         Mouse_exp = request.form.getlist("Mouse_exp")
@@ -70,7 +84,8 @@ def Expression_profiles():
         exp_column = ",".join(list(map(lambda orig_string:Annotation_table+"."+orig_string+"_FPKM"+","+Annotation_table+"."+orig_string +"_Rank",eval(exp_table))))
         Annotation_title.extend(exp_column.replace(Annotation_table +".","").split(","))
         Annotation_column = ",".join([Annotation_column,exp_column])
-
+        if Annotation_column.endswith(','):
+            Annotation_column = Annotation_column[:-1]
         if len(Human_exp)!=0:
             if "Human_GRCh37_RNA" != Annotation_table and "Human_GRCh38_RNA"!= Annotation_table:
                 Annotation_title.append("Human_orthologs")
@@ -108,6 +123,7 @@ def Expression_profiles():
             aliase_Set = set()
             Ensembl_Gene = 'SELECT %s FROM `%s` WHERE `gene_name_ensembl` IN (%s)'
             in_p = ','.join(list(map(lambda x:'\'' + x + '\'', Search_list)))
+
             Ensembl_Gene = Ensembl_Gene % (Annotation_column,Annotation_table,in_p)
             con.execute(Ensembl_Gene)
             Result = con.fetchall()
@@ -127,6 +143,8 @@ def Expression_profiles():
 
             if len(set(Search_list)-Ensembl_Set)!=0:
                 in_p = ', '.join(list(map(lambda x: '\'' + x +'\'',set(Search_list)-Ensembl_Set)))
+                if in_p.endswith(","):
+                    in_p = in_p[:-1]
                 NCBI_Gene = 'SELECT %s FROM `%s` WHERE `gene_name_NCBI` IN (%s)'
                 NCBI_Gene = NCBI_Gene % (Annotation_column,Annotation_table,in_p)
                 con.execute(NCBI_Gene)
@@ -273,7 +291,6 @@ def geneselect():
         dupl = request.form["duplname"][1:-1].replace("\'","").replace(" ","").split(",")
         FinalString= request.form["Final"].replace("\'","\"").replace("None","null")
         Final=json.loads(FinalString)
-        print(FinalString)
         Annotation_title = request.form["Annotation_title"]
 
         Annotation_title =json.loads(request.form["Annotation_title"].replace("\'","\""))
@@ -372,9 +389,10 @@ def Variants_search():
         Genomes_population = request.form.getlist("Genomes")#1000 Genomes population list
         JPN_population = request.form.getlist("JPN")
         ESP_population = request.form.getlist("ESP")
+        TaiwanBiobank = request.form.getlist("TWB")
         tissue = request.form.getlist("tissue")
         REVEL_threshold = float(request.form["REVEL_threshold"])
-
+        detected_level = 0.5
 
         """table title"""
         Final_result = [] #存最後的結果
@@ -382,11 +400,18 @@ def Variants_search():
 
         """add user select tissue to gene annotation list"""
         Gene_annotation =["chr","pos","ref","alt","gene_name_ensembl","gene_description"]
-
-        tissue_column = ",".join(list(map(lambda orig_string:orig_string +"_FPKM"+","+orig_string + "_Rank",tissue)))
+        tissue_column_search = ",".join(list(map(lambda orig_string:orig_string +"_FPKM"+","+orig_string + "_Rank",tissue)))
+        tissue_column_out = ""
+        exp_out_list = request.form.getlist("exp_out")
+        exp_out_list.append("detected")
+        for tis in tissue:
+            for exp_out in exp_out_list:
+                tissue_column_out += "," + tis +"_"+exp_out
+        print(tissue_column_out)
         if len(tissue)!=0:
-            Gene_annotation.extend(tissue_column.split(","))
-            Final_result_title.extend(tissue_column.split(","))
+
+            Gene_annotation.extend(tissue_column_out.split(",")[1:])
+            Final_result_title.extend(tissue_column_out.split(",")[1:])
         Gene_annotation.append("External")
 
        #add different population to allele freq table
@@ -411,9 +436,14 @@ def Variants_search():
             Final_result_title.extend(ESP_population_column.split(","))
             Population_allele_freq.extend(ESP_population_column.split(","))
         if len(request.form.getlist("TWB"))!=0:
-            TWB_column = "TWB_Ref_" + Output_format + "," + "TWB_Alt_" +Output_format
-            Final_result_title.extend(TWB_column.split(","))
-            Population_allele_freq.extend(TWB_column.split(","))
+            if "TWB_GWG" in TaiwanBiobank:
+                TWB_GWG_column = "TWB_GWG_Ref_" + Output_format + "," + "TWB_GWG_Alt_" +Output_format
+                Final_result_title.extend(TWB_GWG_column.split(","))
+                Population_allele_freq.extend(TWB_GWG_column.split(","))
+            if "TWB_NGS" in TaiwanBiobank:
+                TWB_NGS_column = "TWB_NGS_Ref_" + Output_format + "," + "TWB_NGS_Alt_" +Output_format
+                Final_result_title.extend(TWB_NGS_column.split(","))
+                Population_allele_freq.extend(TWB_NGS_column.split(","))
         if len(request.form.getlist("REVEL")) != 0:
             Final_result_title.extend(["REVEL"])
             Predict.extend(["REVEL"])
@@ -426,11 +456,24 @@ def Variants_search():
         if len(request.form.getlist("CADD"))!=0:
             Final_result_title.extend(["CADD_RawScore","CADD_PHRED"])
             Predict.extend(["CADD_RawScore","CADD_PHRED"])
+        target_tissue = request.form["target_tissue"]
 
-
-        Final_result_title.extend(["Index","gerp++","Func","ExonicFunc","AAChange"])
-
-        Predict.extend(["gerp++","Func","ExonicFunc","AAChange"])
+        ANNOVAR_column = ['Func.ensGene','ExonicFunc.ensGene','AAChange.ensGene','gerp++gt2']
+        Final_result_title.extend(["Index","gerp++gt2","Func.ensGene","ExonicFunc.ensGene","AAChange.ensGene"])
+        Predict.extend(["gerp++gt2","Func.ensGene","ExonicFunc.ensGene","AAChange.ensGene"])
+        if "gnomad_exome" in request.form.getlist("anno"):
+            ANNOVAR_column.extend(request.form.getlist("gnomad_exome"))
+            Final_result_title.extend(request.form.getlist("gnomad_exome"))
+            Population_allele_freq.extend(request.form.getlist("gnomad_exome"))
+        if "gnomad_genome" in request.form.getlist("anno"):
+            ANNOVAR_column.extend(request.form.getlist("gnomad_genome"))
+            Final_result_title.extend(request.form.getlist("gnomad_genome"))
+            Population_allele_freq.extend(request.form.getlist("gnomad_genome"))
+            print(request.form.getlist("gnomad_genome"))
+        if "dbnsfp30a" in request.form.getlist("anno"):
+            ANNOVAR_column.extend(request.form.getlist("Polyphen2"))
+            Final_result_title.extend(request.form.getlist("Polyphen2"))
+            Predict.extend(request.form.getlist("Polyphen2"))
 
 
         Result_line = 0
@@ -458,12 +501,12 @@ def Variants_search():
                 return redirect(url_for('Variants_search'))
 
             for var in variant_list:
+
                 vars = re.compile("([\dXYM]+):(\d+)([ATCG-]+)>([ATCG-]+)").split(var)
                 Final_result.append({})
 
-
                 if len(vars)<6 or len(vars)>6 or (len(vars)==6 and vars[5]!=""):
-                    Final_result[Result_line].update({"chr":var,"pos":".","ref":".","alt":".","REVEL":".","H_heart_muscle_Rank":"."})
+                    Final_result[Result_line].update({"chr":var,"pos":".","ref":".","alt":".","REVEL":".","External":"."})
                     vartext_file.write(var+"\t.\t.\t.\t.\n")
                     value = []
                     value.extend(list(repeat(".",len(Final_result_title[4:]))))
@@ -533,8 +576,8 @@ def Variants_search():
                         value.extend(repeat(".",len(ESP_population)*2))
                         ESP_result =dict(zip(list(ESP_population_column.split(",")),value))
                         Final_result[Result_line].update(ESP_result)
-                if len(request.form.getlist("TWB"))!=0:
-                    sql_command="SELECT %s FROM allele_frequency.TWB_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt=\"%s\")" % (TWB_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                if "TWB_GWG" in TaiwanBiobank:
+                    sql_command="SELECT %s FROM allele_frequency.TWB_GWG_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt=\"%s\")" % (TWB_GWG_column,Output_format,vars[1],vars[2],vars[3],vars[4])
                     con.execute(sql_command)
                     TWB_result = con.fetchall()
                     if len(TWB_result)>0:
@@ -542,33 +585,53 @@ def Variants_search():
                     else:
                         value=[]
                         value.extend(repeat(".",2))
-                        TWB_result =dict(zip(list(TWB_column.split(",")),value))
+                        TWB_result =dict(zip(list(TWB_GWG_column.split(",")),value))
+                        Final_result[Result_line].update(TWB_result)
+                if "TWB_NGS" in TaiwanBiobank:
+                    sql_command="SELECT %s FROM allele_frequency.TWB_NGS_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt=\"%s\")" % (TWB_NGS_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                    con.execute(sql_command)
+                    TWB_result = con.fetchall()
+                    if len(TWB_result)>0:
+                        Final_result[Result_line].update(TWB_result[0])
+                    else:
+                        value=[]
+                        value.extend(repeat(".",2))
+                        TWB_result =dict(zip(list(TWB_NGS_column.split(",")),value))
                         Final_result[Result_line].update(TWB_result)
 
 
 
-
                 if len(tissue)!=0:
-                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`, `gene_description`,H_heart_muscle_Rank,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (tissue_column,vars[1],vars[2])
+                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`, `gene_description`,`%s`,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",tissue_column_search,vars[1],vars[2])
                 if len(tissue)==0:
-                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,`H_heart_muscle_Rank` FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (vars[1],vars[2])
+                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,`%s` FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",vars[1],vars[2])
 
                 con.execute(sql_command)
                 RNA_result = con.fetchall()
                 if len(RNA_result) > 0:
                     Final_result[Result_line].update(RNA_result[0])
+                    for RNA_k,RNA_v in RNA_result[0].items():
+                        if "FPKM" in RNA_k:
+                            if RNA_v != "." and RNA_v !=None:
+                                if float(str(RNA_v)) >= detected_level:
+                                    Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"Yes"})
+                                else:
+                                    Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"No"})
+                            else:
+                                Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"."})
+
                     URL = "."
                     if RNA_result[0]["ensembl_gene_id"]!=".":
                         URL ="<a href=\"http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="+RNA_result[0]["ensembl_gene_id"]+"\">Ensembl</a>"
                     if RNA_result[0]["gene_name_ensembl"]!=".":
                         URL =URL+"," + "<a href=\"https://www.ncbi.nlm.nih.gov/gene/?term="+RNA_result[0]["gene_name_ensembl"]+"\">NCBI</a>"
-                        URL =URL+"," + "<a href=\"https://ghr.nlm.nih.gov/search?query="+RNA_result[0]["gene_name_ensembl"]+"\">NHI</a>"
+                        URL =URL+"," + "<a href=\"https://ghr.nlm.nih.gov/search?query="+RNA_result[0]["gene_name_ensembl"]+"\">NIH - GHI</a>"
                     Final_result[Result_line].update({"External":URL})
                 else:
                     Final_result[Result_line].update({"gene_name_ensembl":".","gene_description":".","ensembl_gene_id":".","External":"."})
                     value=[]
-                    value.extend(repeat(".",len(tissue)*2))
-                    RNA_result =dict(zip(list(tissue_column.split(",")),value))
+                    value.extend(repeat(".",len(tissue_column_search.split(","))))
+                    RNA_result =dict(zip(list(tissue_column_search.split(",")),value))
                     Final_result[Result_line].update(RNA_result)
                 sql_command="SELECT %s FROM allele_frequency.%s WHERE (chr =\"%s\") AND (pos=\"%s\") AND (ref = \"%s\") AND (alt = \"%s\")" % ("REVEL","REVEL",vars[1],vars[2],vars[3],vars[4])
                 con.execute(sql_command)
@@ -667,8 +730,8 @@ def Variants_search():
                                 value.extend(repeat(".",len(ESP_population)*2))
                                 ESP_result =dict(zip(list(ESP_population_column.split(",")),value))
                                 Final_result[Result_line].update(ESP_result)
-                        if len(request.form.getlist("TWB"))!=0:
-                            sql_command="SELECT %s FROM allele_frequency.TWB_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (TWB_column,Output_format,CHROM,record.POS,record.REF,record.ALT[idx])
+                        if "TWB_GWG" in TaiwanBiobank:
+                            sql_command="SELECT %s FROM allele_frequency.TWB_GWG_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (TWB_GWG_column,Output_format,CHROM,record.POS,record.REF,record.ALT[idx])
                             con.execute(sql_command)
                             TWB_result = con.fetchall()
                             if len(TWB_result)>0:
@@ -676,30 +739,54 @@ def Variants_search():
                             else:
                                 value=[]
                                 value.extend(repeat(".",2))
-                                TWB_result =dict(zip(list(TWB_column.split(",")),value))
+                                TWB_result =dict(zip(list(TWB_GWG_column.split(",")),value))
                                 Final_result[Result_line].update(TWB_result)
+                        if "TWB_NGS" in TaiwanBiobank:
+                            sql_command="SELECT %s FROM allele_frequency.TWB_NGS_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (TWB_NGS_column,Output_format,CHROM,record.POS,record.REF,record.ALT[idx])
+                            con.execute(sql_command)
+                            TWB_result = con.fetchall()
+                            if len(TWB_result)>0:
+                                Final_result[Result_line].update(TWB_result[0])
+                            else:
+                                value=[]
+                                value.extend(repeat(".",2))
+                                TWB_result =dict(zip(list(TWB_NGS_column.split(",")),value))
+                                Final_result[Result_line].update(TWB_result)
+
+
+
+
 
                         #RNA expression
                         if len(tissue)!=0:
-                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,H_heart_muscle_Rank,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (tissue_column,CHROM,record.POS)
+                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,%s,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",tissue_column_search,CHROM,record.POS)
                         if len(tissue)==0:
-                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,H_heart_muscle_Rank FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (CHROM,record.POS)
+                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",CHROM,record.POS)
                         con.execute(sql_command)
                         RNA_result = con.fetchall()
                         if len(RNA_result) > 0:
                             Final_result[Result_line].update(RNA_result[0])
+                            for RNA_k,RNA_v in RNA_result[0].items():
+                                if "FPKM" in RNA_k:
+                                    if RNA_v != "." and RNA_v !=None:
+                                        if float(str(RNA_v)) >= detected_level:
+                                            Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"Yes"})
+                                        else:
+                                            Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"No"})
+                                    else:
+                                        Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"."})
                             URL="."
                             if RNA_result[0]["ensembl_gene_id"]!=".":
                                 URL ="<a href=\"http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="+RNA_result[0]["ensembl_gene_id"]+"\">Ensembl</a>"
                             if RNA_result[0]["gene_name_ensembl"]!=".":
                                 URL =URL+"," + "<a href=\"https://www.ncbi.nlm.nih.gov/gene/?term="+RNA_result[0]["gene_name_ensembl"]+"\">NCBI</a>"
-                                URL =URL+"," + "<a href=\"https://ghr.nlm.nih.gov/search?query="+RNA_result[0]["gene_name_ensembl"]+"\">NHI</a>"
+                                URL =URL+"," + "<a href=\"https://ghr.nlm.nih.gov/search?query="+RNA_result[0]["gene_name_ensembl"]+"\">NIH - GHI</a>"
                             Final_result[Result_line].update({"External":URL})
                         else:
                             Final_result[Result_line].update({"gene_name_ensembl":".","gene_description":".","ensembl_gene_id":".","External":"."})
                             value=[]
-                            value.extend(repeat(".",len(tissue)*2))
-                            RNA_result =dict(zip(list(tissue_column.split(",")),value))
+                            value.extend(repeat(".",len(tissue_column_search.split(","))))
+                            RNA_result =dict(zip(list(tissue_column_search.split(",")),value))
                             Final_result[Result_line].update(RNA_result)
 
 
@@ -712,6 +799,7 @@ def Variants_search():
                             Final_result[Result_line].update(result[0])
                         else:
                             Final_result[Result_line].update({"REVEL":"."})
+
 
 
 
@@ -734,7 +822,8 @@ def Variants_search():
                 if len(request.form.getlist("CADD"))!=0:
                     CADD_file.close()
 
-            except:
+            except Exception as e:
+                #print(e)
                 flash('File format not supported!')
                 removeuserfile(User_id)
                 if len(request.form.getlist("CADD"))!=0:
@@ -753,12 +842,16 @@ def Variants_search():
         import subprocess
         import sys
 
+        anno_data ="".join(list(map(lambda orig_string:","+orig_string,request.form.getlist("anno"))))
+        anno_oper = ",f" * len(request.form.getlist("anno"))
+
 
         if file.filename == '':
-            cmd='/var/www/html/varied/annovar/table_annovar.pl %s /var/www/html/varied/annovar/humandb/ -buildver hg19 -remove --thread 2 -protocol ensGene,gerp++gt2 -operation g,f -nastring . --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],User_id +".avinput"),os.path.join(app.config['UPLOAD_FOLDER'],User_id))
+            cmd='%s %s %s -buildver hg19 -remove --thread 2 -protocol ensGene,gerp++gt2%s -operation g,f%s -nastring . --outfile %s' % (ANNOVAR_path, os.path.join(app.config['UPLOAD_FOLDER'],User_id +".avinput"),humandb_path,anno_data,anno_oper, os.path.join(app.config['UPLOAD_FOLDER'],User_id))
+
 
         else:
-            cmd='/var/www/html/varied/annovar/table_annovar.pl %s /var/www/html/varied/annovar/humandb/ -buildver hg19 -remove --thread 2 -protocol ensGene,gerp++gt2 -operation g,f -nastring . -vcfinput --outfile %s' % (os.path.join(app.config['UPLOAD_FOLDER'],filename),os.path.join(app.config['UPLOAD_FOLDER'],User_id))
+            cmd='%s %s %s -buildver hg19 -remove --thread 2 -protocol ensGene,gerp++gt2%s -operation g,f%s -nastring . -vcfinput --outfile %s' % (ANNOVAR_path,os.path.join(app.config['UPLOAD_FOLDER'],filename),humandb_path,anno_data,anno_oper,os.path.join(app.config['UPLOAD_FOLDER'],User_id))
 
         retcode = subprocess.call(cmd, shell=True)
         if retcode != 0:
@@ -768,12 +861,10 @@ def Variants_search():
         Current_line = 0
 
         with open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".hg19_multianno.txt"),"r") as annovar:
-            for line in annovar:
-                Current_line+=1
-                line = line.strip()
-                if Current_line !=1:
-                    lines = line.split("\t")
-                    Final_result[Current_line-2].update({"Func":lines[5],"ExonicFunc":lines[8],"AAChange":lines[9],"gerp++":lines[10]})
+            for line in csv.DictReader(annovar,delimiter='\t'):
+                annovar_result = [line[x] for x in ANNOVAR_column]
+                Final_result[Current_line].update(dict(zip(ANNOVAR_column,annovar_result)))
+                Current_line +=1
 
 
         if len(request.form.getlist("CADD"))!=0:
@@ -786,12 +877,12 @@ def Variants_search():
             with gzip.open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".CADD.gz"), 'rb') as CADD_out:
                 for line in CADD_out:
                     line = line.decode("utf-8").strip()
-                    print(line)
                     if line[0]!="#":
                         lines = line.split("\t")
                         line_dict_key = (lines[0],lines[1],lines[2],lines[3])
-                        for result_line in line_dict[line_dict_key]:
-                            Final_result[result_line].update({"CADD_RawScore":lines[4],"CADD_PHRED":lines[5]})
+                        if line_dict_key in line_dict:
+                            for result_line in line_dict[line_dict_key]:
+                                Final_result[result_line].update({"CADD_RawScore":lines[4],"CADD_PHRED":lines[5]})
 
 
         if len(request.form.getlist("InterVar"))!=0:
@@ -799,7 +890,9 @@ def Variants_search():
                 cmd = ["python2.7",InterVar_Path,"-b","hg19","-i",os.path.join(app.config['UPLOAD_FOLDER'],User_id +".avinput"),"-o",os.path.join(app.config['UPLOAD_FOLDER'],User_id)]
             else:
                 cmd =["python2.7",InterVar_Path,"-b","hg19","-i",os.path.join(app.config['UPLOAD_FOLDER'],filename),"--input_type=VCF","-o",os.path.join(app.config['UPLOAD_FOLDER'],User_id)]
-            retcode = subprocess.call(cmd)
+
+            retcode = subprocess.call(cmd,shell=True)
+
             if retcode != 0: sys.exit(retcode)
             Current_line = 0
             with open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".hg19_multianno.txt.intervar"),"r",encoding='utf-8',errors='ignore') as Intervar:
@@ -835,14 +928,14 @@ def Variants_search():
 
 
                         else:
-                            Intervar_type = intervar[1]
+                            Intervar_type = intervar[1]+"("
                             PS = sum(list(map(int,intervar[3].split("=")[1][1:-1].split(","))))
                             PM = sum(list(map(int,intervar[4].split("=")[1][1:-1].split(","))))
                             PP = sum(list(map(int,intervar[5].split("=")[1][1:-1].split(","))))
                             BS = sum(list(map(int,intervar[7].split("=")[1][1:-1].split(","))))
                             BP = sum(list(map(int,intervar[8].split("=")[1][1:-1].split(","))))
                             if intervar[2].split("=")[1] == "1":
-                                Intervar_type = Intervar_type + "(PVS1"
+                                Intervar_type = Intervar_type + "PVS1"
                             Intervar_type = Intervar_type + ",PS" + str(PS)
                             Intervar_type = Intervar_type + ",PM" + str(PM)
                             Intervar_type = Intervar_type + ",PP" + str(PP)
@@ -868,28 +961,28 @@ def Variants_search():
 
             """Add index"""
             for resaddID in Final_result:
-                if resaddID['Func'] == "intergenic" or resaddID['Func'] == "intronic" or resaddID['ExonicFunc']=="synonymous SNV":
+                if "intergenic" in resaddID.values() or "intronic" in resaddID.values() or "synonymous SNV" in resaddID.values():
                     resaddID['Index'] = 0
                 if resaddID['REVEL']!= ".":
-                    if resaddID['ExonicFunc'] == "nonsynonymous SNV" or float(resaddID['REVEL'])<REVEL_threshold:
+                    if "nonsynonymous SNV" in resaddID.values() or float(resaddID['REVEL'])<REVEL_threshold:
                         resaddID['Index'] = 1
-                    if resaddID['ExonicFunc'] == "nonsynonymous SNV":
-                        if float(resaddID['REVEL'])>REVEL_threshold or resaddID['Func'] == "splicing":
+                    if "nonsynonymous SNV" in resaddID.values():
+                        if float(resaddID['REVEL'])>REVEL_threshold or "splicing" in resaddID.values():
                             resaddID['Index'] = 2
-                            if resaddID['H_heart_muscle_Rank']!=".":
-                                if eval(resaddID['H_heart_muscle_Rank'])<0.25:
+                            if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
+                                if float(resaddID[target_tissue+"_FPKM"])>=0.5:
                                     resaddID['Index'] = 3
-                            if resaddID['gerp++']!=".":
+                            if resaddID['gerp++gt2']!=".":
                                 resaddID['Index'] = 3
                 elif resaddID['REVEL']== ".":
-                    if resaddID['ExonicFunc'] == "nonsynonymous SNV":
+                    if "nonsynonymous SNV" in resaddID.values():
                         resaddID['Index'] = 1
-                    if resaddID['Func'] == "splicing":
+                    if "splicing" in resaddID.values():
                         resaddID['Index'] = 2
-                        if resaddID['H_heart_muscle_Rank']!=".":
-                            if eval(resaddID['H_heart_muscle_Rank'])<0.25:
+                        if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
+                            if float(resaddID[target_tissue+"_FPKM"])>=0.5:
                                 resaddID['Index'] = 3
-                        if resaddID['gerp++']!=".":
+                        if resaddID['gerp++gt2']!=".":
                                 resaddID['Index'] = 3
                 if "Index" not in resaddID:
                     resaddID['Index'] = 0
@@ -950,6 +1043,9 @@ def removeuserfile(User_id):
 def Tutorial():
     return render_template('Tutorial.html')
 
+@app.route("/Contact")
+def Contact():
+    return render_template('Contact.html')
 class DataTablesServer(object):
     def __init__( self, request, columns, collection):
         self.columns = columns
