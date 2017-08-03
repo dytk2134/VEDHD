@@ -13,15 +13,13 @@ from itertools import repeat
 from collections import namedtuple
 import gzip
 
-#path
+#外接程式與資料夾路徑
 #apache
-
 UPLOAD_FOLDER='/var/www/html/varied/upload/'
 InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
 CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
 ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
 humandb_path = '/var/www/html/varied/annovar/humandb/'
-
 #test
 """
 UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
@@ -30,27 +28,33 @@ CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
 ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
 humandb_path = '/var/www/html/varied/annovar/humandb/'
 """
-ALLOWED_EXTENSIONS=set(['txt','vcf'])
+
+ALLOWED_EXTENSIONS=set(['txt','vcf'])#允許的副檔名
+
 app = Flask(__name__)
 app.secret_key = "^awed@1qh)#1ozd0+2dx*d117l3cr!@rfnr238jducwmpt0cd_"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+#textarea value分割符號
 delimiters = '\t',';',"\r\n",',',' '
 regexPattern = '|'.join(map(re.escape,delimiters))
 
+#多重取代
 def multiple_replace(string, rep_dict):
     pattern = re.compile("|".join([re.escape(k) for k in rep_dict.keys()]),re.M)
     return pattern.sub(lambda x: rep_dict[x.group(0)], string)
 
 """file reader"""
+#確認使用者上傳檔案是否符合允許副檔名
 def allowed_file(filename):
     return '.' in filename and \
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+#首頁,若須改介面請改./templete/index.html
 @app.route("/")
 def index():
     return render_template('index.html')
-
+#Expression profiles
 @app.route("/Expression_profiles",methods=['GET','POST'])
 def Expression_profiles():
     if request.method == "POST":
@@ -59,7 +63,7 @@ def Expression_profiles():
         con=db.cursor()
 
 #processing user input gene list"""
-        Search_text=multiple_replace(request.form['search_list'],{"\"":"","\'":"","`":"","%":""})
+        Search_text=multiple_replace(request.form['search_list'],{"\"":"","\'":"","`":"","%":""})#取代可能會造成sql injection的字元
         Search_text=Search_text.upper()
         Search_list =list(filter(None,re.split(regexPattern,Search_text)))
 
@@ -407,7 +411,6 @@ def Variants_search():
         for tis in tissue:
             for exp_out in exp_out_list:
                 tissue_column_out += "," + tis +"_"+exp_out
-        print(tissue_column_out)
         if len(tissue)!=0:
 
             Gene_annotation.extend(tissue_column_out.split(",")[1:])
