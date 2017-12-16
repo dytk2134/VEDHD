@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="margin:20px 100px 20px 100px;">
+
+  <table id="jsontable" class="display">
+    <thead>
+      <tr>
+        {% for k in keys %}
+        <th>{{ k }}</th>
+        {% endfor %}            
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        {% for k in keys %}
+        <th>{{ k }}</th>
+        {% endfor %}
+      </tr>
+    </tfoot>
+    <tbody>
+      {% for line in results %}               
+      <tr>
+        {% for k in keys %}
+        {% if line[k]!="None" and line[k]!=None and line[k]!="null" %}
+        {% if k == "Zebrafish_orthologs" or k == "Human_orthologs" or k == "Mouse_orthologs" %}
+        <!-- Button trigger modal -->
+        <td>
+          <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target={{"#"+line["User_input"]+k}} value={{line[k]}}>1 to {{ line[k]|length }}
+          </button>
+          <!-- Modal -->
+          <div id={{line["User_input"]+k}} class="modal fade">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                  <h4 class="modal-title">{{ k }}</h4>
+                </div>
+                <div class="modal-body">
+                  <div style="overflow: auto">
+                    <table id="orthologs" class="table table-striped">
+                      {% if k == "Zebrafish_orthologs" %}
+                      <thead>
+                        {% for orhead in Zebrafish_orthologs %}
+                        <th>{{ orhead }}</th>
+                        {% endfor %}
+                      </thead>
+                      <tbody>
+                        {% for ortholog in line[k] %}
+                        <tr>
+                          {% for orthkey in Zebrafish_orthologs %}
+                          {% if orthkey == "ensembl_gene_id" %}
+                          <td><a href={{"http://oct2016.archive.ensembl.org/Danio_rerio/geneview?gene="+ortholog[orthkey]}} target="_blank" rel="nofollow">{{ortholog[orthkey]}}</a></td>
+                          {% else %}
+                          <td>{{ ortholog[orthkey] }}</td>
+                          {% endif %}
+                          {% endfor %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                      {% elif k == "Human_orthologs" %}
+                      <thead>
+                        {% for orhead in Human_orthologs %}
+                        <th>{{ orhead }}</th>
+                        {% endfor %}
+                      </thead>
+                      <tbody>
+                        {% for ortholog in line[k] %}
+                        <tr>
+                          {% for orthkey in Human_orthologs %}
+                          {% if orthkey == "ensembl_gene_id" %}
+                          <td><a href={{"http://oct2016.archive.ensembl.org/Homo_sapiens/geneview?gene="+ortholog[orthkey]}} target="_blank" rel="nofollow">{{ortholog[orthkey]}}</a></td>
+                          {% else %}
+                          <td>{{ ortholog[orthkey] }}</td>
+                          {% endif %}
+                          {% endfor %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                      {% elif k == "Mouse_orthologs" %}
+                      <thead>
+                        {% for orhead in Mouse_orthologs %}
+                        <th>{{ orhead }}</th>
+                        {% endfor %}
+                      </thead>
+
+
+                      <tbody>
+                        {% for ortholog in line[k] %}
+                        <tr>
+                          {% for orthkey in Mouse_orthologs %}
+                          {% if orthkey == "ensembl_gene_id" %}
+                          <td><a href={{"http://oct2016.archive.ensembl.org/Mus_musculus/geneview?gene="+ortholog[orthkey]}} target="_blank" rel="nofollow">{{ortholog[orthkey]}}</a></td>
+                          {% else %}
+                          <td>{{ ortholog[orthkey] }}</td>
+                          {% endif %}
+                          {% endfor %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                      {% endif %}
+                    </table>
+                  </div>
+                </div>               
+              </div>
+            </div>
+          </div>
+        </div>              
+      </td>
+      {% else %}
+      <td>{{ line[k]}}</td>
+      {% endif %}
+      {% elif line[k] == "null" %}
+      <td>{{ line[k].replace("null","None") }}</td>
+      {% else %}
+      <td>{{ line[k] }}</td>
+      {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+         </div>
+
+         {% block js %}
+         <!--dataTable-->
+         <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+         <link href="//cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+         <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/buttons/1.1.1/css/buttons.dataTables.min.css">
+         <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/select/1.1.0/css/select.dataTables.min.css">
+         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0/datatables.min.css"/>
+         <script src="//cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+         <script type="text/javascript" language="javascript" src="//cdn.datatables.net/buttons/1.1.1/js/dataTables.buttons.min.js"></script>
+         <script type="text/javascript" language="javascript" src="//cdn.datatables.net/select/1.1.0/js/dataTables.select.min.js"></script>
+         <script type="text/javascript" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0/datatables.min.js"></script>
+
+         {% endblock js %}
+    
+         <!-- Button trigger modal -->
+        
+         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+            
+
+        
+         <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/tabs.css') }}">
+
+
+         
+
+        <script>
+	$(document).ready(function() {
+
+			$('#jsontable').DataTable( {
+			    dom: 'Bfrtip',
+			    buttons: [
+			        'copy','csv', 'excel', 'print'
+          ]
+          ,"scrollX": true
+        
+			} );
+	} );
+</script>
+  {% endblock content %}
+  
