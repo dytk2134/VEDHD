@@ -1,0 +1,162 @@
+# VENV #
+########
+venv\
+
+# Virtualenv
+# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
+.Python
+[Bb]in
+[Ii]nclude
+[Ll]ib
+[Ll]ocal
+[Ss]cripts
+pyvenv.cfg
+pip-selfcheck.json
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Vim swap files#
+#################
+*.swp
+*.pyc
+*~
+
+# R related #
+#############
+*.Rbuildignore
+.Rproj.user
+.Rhistory
+
+.netrwhist
+
+
+
+# IPython Notebook #
+####################
+.ipynb_checkpoints
+
+
+# Python 3.x #
+##############
+__pycache__
+venv/
+
+# Sqlite3
+sqlite3.{def,dll,exe}
+
+# Django stuff
+*.pot
+*.log
+assets/
+local.db
+
+# PyCharm
+.idea/
+*.csv
+*.xls
+*.tsv
+*.sqlite3
+*.sqlite3
+src/db.sqlite3
+src/probes/migrations/0006_auto_20160302_2025.py
+*.xlsx
+src/Untitled.ipynb
+src/GSE36133.npy
+src/nci60.npy
+src/sanger_cell_line_proj.npy
+*.ipynb
+src/nci60.npy
+src/sanger_cell_line_proj.npy
+# user static file
+src/static/heatmap/
+*.npy
+*.ipynb
+*.ipynb
