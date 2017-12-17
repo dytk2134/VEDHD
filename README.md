@@ -26,3 +26,11 @@ Use pip:
 ```
 pip install -r requirements.txt
 ```
+
+## Run server
+```
+python project/VariED.py
+```
+
+## Databases
+Please contact dytk2134[at]gmail[dot]com to let me know if need to get the data in VariED.  
