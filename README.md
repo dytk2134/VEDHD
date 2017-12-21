@@ -9,6 +9,7 @@ VariED is under the VariED project in Bioinformatics and Biostatistics Core, NTU
 * Python 3.4+
 * Flask 0.10.1
 * ANNOVAR
+* CADD
 
 ## Set up a Python Virtual Environment
 ### Built-in `venv`
@@ -26,6 +27,8 @@ Use pip:
 ```
 pip install -r requirements.txt
 ```
+## Set up Local Environment Variables
+Edit the 'Path' in VariED.py
 
 ## Run server
 ```
@@ -33,4 +36,4 @@ python project/VariED.py
 ```
 
 ## Databases
-Please contact dytk2134[at]gmail[dot]com to let me know if need to get the data in VariED.  
+Please contact dytk2134[at]gmail[dot]com to let me know if need to get the data in VariED. For large files, we will provide FTP for you:) 
