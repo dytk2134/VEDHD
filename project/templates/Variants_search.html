@@ -104,7 +104,7 @@
  <tr><td>
 <input type="checkbox" name="anno" value="gnomad_exome" id="gnomAD_exome"> gnomAD exome collection
 <div id="select_gnomad_exome" style="text-indent : 2em ;">
-<input type="checkbox" name="gnomad_exome" value="gnomAD_exome_ALL" > gnomAD exome ALL
+<input type="checkbox" name="gnomad_exome" value="gnomAD_exome_ALL" id="gnomAD_exome_ALL"> gnomAD exome ALL
 <input type="checkbox" name="gnomad_exome" value="gnomAD_exome_AFR" > gnomAD exome African/African American
 <input type="checkbox" name="gnomad_exome" value="gnomAD_exome_AMR" > gnomAD exome Latino
 <input type="checkbox" name="gnomad_exome" value="gnomAD_exome_ASJ" > gnomAD exome Ashkenazi Jewish 
@@ -116,7 +116,7 @@
 </div>
 <input type="checkbox" name="anno" value="gnomad_genome" id="gnomAD_genome"> gnomAD genome collection
 <div id="select_gnomad_genome" style="text-indent : 2em ;">
-<input type="checkbox" name="gnomad_genome" value="gnomAD_genome_ALL" > gnomAD genome ALL
+<input type="checkbox" name="gnomad_genome" value="gnomAD_genome_ALL" id="gnomAD_genome_ALL"> gnomAD genome ALL
 <input type="checkbox" name="gnomad_genome" value="gnomAD_genome_AFR" > gnomAD genome African/African American
 <input type="checkbox" name="gnomad_genome" value="gnomAD_genome_AMR" > gnomAD genome Latino
 <input type="checkbox" name="gnomad_genome" value="gnomAD_genome_ASJ" > gnomAD genome Ashkenazi Jewish 
@@ -129,7 +129,7 @@
 
 </td></tr>
 <td class="info"><font size="3">gene expression profiles</font>
-  <input type="checkbox" name="exp_out" value="FPKM"> FPKM
+  <input type="checkbox" name="exp_out" value="FPKM" checked> FPKM
   <input type="checkbox" name="exp_out" value="Rank"> Rank</td>
 </tr>
 <tr><td>
@@ -146,11 +146,11 @@
       <option value="H_esophagus">Esophagus</option>
       <option value="H_fallopian_tube">Fallopian tube</option>
       <option value="H_gallbladder">Gallbladder</option>
-      <option value="H_heart_muscle">Heart muscle</option>
+      <option value="H_heart_muscle" selected="selected">Heart muscle</option>
       <option value="H_kidney">Kidney</option>
       <option value="H_liver">Liver</option>
       <option value="H_lung">Lung</option>
-      <option value="H_lymph_node" selected>Lymph node</option>
+      <option value="H_lymph_node">Lymph node</option>
       <option value="H_ovary">Ovary</option>
       <option value="H_pancreas">Pancreas</option>
       <option value="H_placenta">Placenta</option>
@@ -181,7 +181,7 @@
   <option value="H_esophagus">Esophagus</option>
   <option value="H_fallopian_tube">Fallopian tube</option>
   <option value="H_gallbladder">Gallbladder</option>
-  <option value="H_heart_muscle">Heart muscle</option>
+  <option value="H_heart_muscle" selected="selected">Heart muscle</option>
   <option value="H_kidney">Kidney</option>
   <option value="H_liver">Liver</option>
   <option value="H_lung">Lung</option>
@@ -217,9 +217,9 @@
 <input type="checkbox" name="CADD" value="CADD"> <abbr title="Combined Annotation Dependent Depletion">CADD</abbr> scores</label>
 <input type="checkbox" name="anno" value="dbnsfp30a" id="Polyphen2"> PolyPhen2
 <div id="select_Polyphen2" style="text-indent : 2em ;">
-  <input type="checkbox" name="Polyphen2" value="Polyphen2_HDIV_score" > Polyphen2 HDIV score
-<input type="checkbox" name="Polyphen2" value="Polyphen2_HDIV_pred" > Polyphen2 HDIV pred
-<input type="checkbox" name="Polyphen2" value="Polyphen2_HVAR_score" > Polyphen2 HVAR score
+  <input type="checkbox" name="Polyphen2" value="Polyphen2_HDIV_score" id="Polyphen2_HDIV_score" > Polyphen2 HDIV score
+<input type="checkbox" name="Polyphen2" value="Polyphen2_HDIV_pred"> Polyphen2 HDIV pred
+<input type="checkbox" name="Polyphen2" value="Polyphen2_HVAR_score" id="Polyphen2_HVAR_score"> Polyphen2 HVAR score
 <input type="checkbox" name="Polyphen2" value="Polyphen2_HVAR_pred" > Polyphen2 HVAR pred
 </div>
 
@@ -260,6 +260,7 @@
      $("div[id='select_gnomad_exome']").hide();
      $("input[id='gnomAD_exome']").change(function(){
        if ($("input[id='gnomAD_exome'").is(':checked')) {
+         $("#gnomAD_exome_ALL").prop("checked", true);
          $("div[id='select_gnomad_exome']").show();
        }
        else {
@@ -271,6 +272,7 @@
      $("div[id='select_gnomad_genome']").hide();
      $("input[id='gnomAD_genome']").change(function(){
        if ($("input[id='gnomAD_genome'").is(':checked')) {
+         $("#gnomAD_genome_ALL").prop("checked", true);
          $("div[id='select_gnomad_genome']").show();
        }
        else {
@@ -283,6 +285,8 @@
      $("div[id='select_Polyphen2']").hide();
      $("input[id='Polyphen2']").change(function(){
        if ($("input[id='Polyphen2'").is(':checked')) {
+         $("#Polyphen2_HDIV_score").prop("checked", true);
+         $("#Polyphen2_HVAR_score").prop("checked", true);
          $("div[id='select_Polyphen2']").show();
        }
        else {
