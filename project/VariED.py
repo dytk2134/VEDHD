@@ -966,18 +966,17 @@ def Variants_search():
                 if resaddID['REVEL']!= ".":
                     if "nonsynonymous SNV" in resaddID.values() or float(resaddID['REVEL'])<REVEL_threshold:
                         resaddID['Index'] = 1
-                    if "nonsynonymous SNV" in resaddID.values():
-                        if float(resaddID['REVEL'])>REVEL_threshold or "splicing" in resaddID.values():
-                            resaddID['Index'] = 2
-                            if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
-                                if float(resaddID[target_tissue+"_FPKM"])>=0.5:
-                                    resaddID['Index'] = 3
-                            if resaddID['gerp++gt2']!=".":
+                    if ("nonsynonymous SNV" in resaddID.values() and float(resaddID['REVEL'])>REVEL_threshold) or ("splicing" in resaddID.values()) or ("stopgain"  +++ in resaddID.values()):
+                        resaddID['Index'] = 2
+                        if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
+                            if float(resaddID[target_tissue+"_FPKM"])>=0.5:
                                 resaddID['Index'] = 3
+                        if resaddID['gerp++gt2']!=".":
+                            resaddID['Index'] = 3
                 elif resaddID['REVEL']== ".":
                     if "nonsynonymous SNV" in resaddID.values():
                         resaddID['Index'] = 1
-                    if "splicing" in resaddID.values():
+                    if "splicing" in resaddID.values() or "stopgain" in resaddID.values():
                         resaddID['Index'] = 2
                         if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
                             if float(resaddID[target_tissue+"_FPKM"])>=0.5:
