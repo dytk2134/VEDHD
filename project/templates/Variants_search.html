@@ -100,6 +100,31 @@
 </label>
 </td></tr>
 
+<td class="active"><font size="3">The Exome Aggregation Consortium (ExAC)</font></td>
+<tr><td>
+<label class="checkbox-inline">
+<input type="checkbox" name="ExAC" value="ExAC_AFR"> African & African American
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ExAC" value="ExAC_AMR"> American
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ExAC" value="ExAC_EAS"> East Asian
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ExAC" value="ExAC_FIN"> Finnish
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ExAC" value="ExAC_NFE"> Non-Finnish European
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ExAC" value="ExAC_SAS"> South Asian
+</label>
+<label class="checkbox-inline">
+  <input type="checkbox" name="ExAC" value="ExAC_OTH"> Other
+</label>
+</td></tr>
+
 <td class="active"><font size="3">gnomAD</font></td>
  <tr><td>
 <input type="checkbox" name="anno" value="gnomad_exome" id="gnomAD_exome"> gnomAD exome collection
@@ -129,7 +154,7 @@
 
 </td></tr>
 <td class="info"><font size="3">gene expression profiles</font>
-  <input type="checkbox" name="exp_out" value="FPKM" checked> FPKM
+  <input type="checkbox" name="exp_out" value="TPM" checked> TPM
   <input type="checkbox" name="exp_out" value="Rank"> Rank</td>
 </tr>
 <tr><td>
@@ -139,10 +164,13 @@
       <option value="H_adrenal_gland">Adrenal gland</option>
       <option value="H_appendix">Appendix</option>
       <option value="H_bone_marrow">Bone marrow</option>
+      <option value="H_breast">Breast</option>
       <option value="H_cerebral_cortex">Cerebral cortex</option>
+      <option value="H_cervix_uterine">Cervix, Uterine</option>
       <option value="H_colon">Colon</option>
       <option value="H_duodenum">Duodenum</option>
       <option value="H_endometrium">Endometrium</option>
+      <option value="H_epididymis">Epididymis</option>
       <option value="H_esophagus">Esophagus</option>
       <option value="H_fallopian_tube">Fallopian tube</option>
       <option value="H_gallbladder">Gallbladder</option>
@@ -153,10 +181,12 @@
       <option value="H_lymph_node">Lymph node</option>
       <option value="H_ovary">Ovary</option>
       <option value="H_pancreas">Pancreas</option>
+      <option value="H_parathyroid_gland">Parathyroid gland</option>
       <option value="H_placenta">Placenta</option>
       <option value="H_prostate">Prostate</option>
       <option value="H_rectum">Rectum</option>
       <option value="H_salivary_gland">Salivary gland</option>
+      <option value="H_seminal_vesicle">Seminal vesicle</option>
       <option value="H_skeletal_muscle">Skeletal muscle</option>
       <option value="H_skin">Skin</option>
       <option value="H_small_intestine">Small intestine</option>
@@ -174,10 +204,13 @@
   <option value="H_adrenal_gland">Adrenal gland</option>
   <option value="H_appendix">Appendix</option>
   <option value="H_bone_marrow">Bone marrow</option>
+  <option value="H_breast">Breast</option>
   <option value="H_cerebral_cortex">Cerebral cortex</option>
+  <option value="H_cervix_uterine">Cervix, Uterine</option>
   <option value="H_colon">Colon</option>
   <option value="H_duodenum">Duodenum</option>
   <option value="H_endometrium">Endometrium</option>
+  <option value="H_epididymis">Epididymis</option>
   <option value="H_esophagus">Esophagus</option>
   <option value="H_fallopian_tube">Fallopian tube</option>
   <option value="H_gallbladder">Gallbladder</option>
@@ -188,10 +221,12 @@
   <option value="H_lymph_node">Lymph node</option>
   <option value="H_ovary">Ovary</option>
   <option value="H_pancreas">Pancreas</option>
+  <option value="H_parathyroid_gland">Parathyroid gland</option>
   <option value="H_placenta">Placenta</option>
   <option value="H_prostate">Prostate</option>
   <option value="H_rectum">Rectum</option>
   <option value="H_salivary_gland">Salivary gland</option>
+  <option value="H_seminal_vesicle">Seminal vesicle</option>
   <option value="H_skeletal_muscle">Skeletal muscle</option>
   <option value="H_skin">Skin</option>
   <option value="H_small_intestine">Small intestine</option>
@@ -202,7 +237,6 @@
   <option value="H_thyroid_gland">Thyroid gland</option>
   <option value="H_tonsil">Tonsil</option>
   <option value="H_urinary_bladder">Urinary bladder</option>
-
 </select>
 </tr></td>
 <td class="info"><font size="3">Functional prediction</font></td>
