@@ -23,13 +23,13 @@ ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
 humandb_path = '/var/www/html/varied/annovar/humandb/'
 
 #test
-"""
-UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
-InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
-CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
-ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
-humandb_path = '/var/www/html/varied/annovar/humandb/'
-"""
+
+#UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
+#InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
+#CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
+#ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
+#humandb_path = '/var/www/html/varied/annovar/humandb/'
+
 ALLOWED_EXTENSIONS=set(['txt','vcf'])
 app = Flask(__name__)
 app.secret_key = "^awed@1qh)#1ozd0+2dx*d117l3cr!@rfnr238jducwmpt0cd_"
@@ -334,7 +334,6 @@ def geneselect():
                     if dup_res['family_ID']!=None:
                         sql_command = 'SELECT %s FROM %s WHERE `family_ID` = \"%s\" GROUP BY family_ID'
                         sql_command = sql_command % (",".join(list(map(lambda orig_string:"ROUND(AVG("+orig_string+"_FPKM),2) AS "+ orig_string+"_AVGExp",Zebrafish_exp))),"Zebrafish_GRCz10_RNA",dup_res['family_ID'])
-                        print(sql_command)
                         con.execute(sql_command)
                         Result_exp = con.fetchall()
                         if len(Result_exp)!=0:
@@ -404,7 +403,7 @@ def Variants_search():
 
         """add user select tissue to gene annotation list"""
         Gene_annotation =["chr","pos","ref","alt","gene_name_ensembl","gene_description"]
-        tissue_column_search = ",".join(list(map(lambda orig_string:orig_string +"_TPM"+","+orig_string + "_Rank",tissue)))
+        tissue_column_search = ",".join(list(map(lambda orig_string:orig_string +"_TPM",tissue)))
         tissue_column_out = ""
         exp_out_list = request.form.getlist("exp_out")
         exp_out_list.append("detected")
@@ -416,6 +415,7 @@ def Variants_search():
             Gene_annotation.extend(tissue_column_out.split(",")[1:])
             Final_result_title.extend(tissue_column_out.split(",")[1:])
         Gene_annotation.append("External")
+        Final_result_title.append("External")
 
        #add different population to allele freq table
 
@@ -476,7 +476,6 @@ def Variants_search():
             ANNOVAR_column.extend(request.form.getlist("gnomad_genome"))
             Final_result_title.extend(request.form.getlist("gnomad_genome"))
             Population_allele_freq.extend(request.form.getlist("gnomad_genome"))
-            print(request.form.getlist("gnomad_genome"))
         if "dbnsfp30a" in request.form.getlist("anno"):
             ANNOVAR_column.extend(request.form.getlist("Polyphen2"))
             Final_result_title.extend(request.form.getlist("Polyphen2"))
@@ -488,9 +487,13 @@ def Variants_search():
 
 
         #if user input file
-        file = request.files['file']
+        try:
+            file = request.files['file']
+        except:
+            file = False
         #如果使用者上傳檔案，則使用此檔案的資訊
-        if file.filename == '':
+        #if file.filename == '':
+        if not file:
             variant_text = multiple_replace(request.form['variants_list'],{"\"":"","\'":"","`":"","%":""})
             variant_text = variant_text.upper()
             variant_list =list(filter(None,re.split(regexPattern,variant_text)))
@@ -879,7 +882,8 @@ def Variants_search():
         anno_oper = ",f" * len(request.form.getlist("anno"))
 
 
-        if file.filename == '':
+        #if file.filename == '':
+        if not file:
             cmd='%s %s %s -buildver hg19 -remove --thread 2 -protocol ensGene,gerp++gt2%s -operation g,f%s -nastring . --outfile %s' % (ANNOVAR_path, os.path.join(app.config['UPLOAD_FOLDER'],User_id +".avinput"),humandb_path,anno_data,anno_oper, os.path.join(app.config['UPLOAD_FOLDER'],User_id))
 
 
@@ -896,8 +900,13 @@ def Variants_search():
         with open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".hg19_multianno.txt"),"r") as annovar:
             for line in csv.DictReader(annovar,delimiter='\t'):
                 annovar_result = [line[x] for x in ANNOVAR_column]
-                Final_result[Current_line].update(dict(zip(ANNOVAR_column,annovar_result)))
-                Current_line +=1
+                try:
+                    Final_result[Current_line].update(dict(zip(ANNOVAR_column,annovar_result)))
+                    Current_line +=1
+                except:
+                    flash('File format not supported!')
+                    return redirect(url_for('Variants_search'))
+
 
 
         if len(request.form.getlist("CADD"))!=0:
@@ -989,9 +998,10 @@ def Variants_search():
 
         if len(Final_result)!=0:
             Total_key = list(Final_result[0].keys())
+            print(Total_key)
             if "Index" not in Total_key:
                 Total_key.append("Index")
-            User_table_command = "CREATE TABLE `%s` (`id` int(11) NOT NULL auto_increment,%s,PRIMARY KEY  (`id`))" % (User_id,",".join(list(map(lambda orig:"`"+orig+"` TEXT NOT NULL",Total_key))))
+            User_table_command = "CREATE TABLE `%s` (`id` int(11) NOT NULL auto_increment,%s,PRIMARY KEY  (`id`))" % (User_id,",".join(list(map(lambda orig:"`"+orig+"` TEXT NOT NULL",Final_result_title))))
             con.execute(User_table_command)
             User_insert = "INSERT INTO `%s` %s VALUES %s"
             """Add index"""
@@ -1020,8 +1030,13 @@ def Variants_search():
                                 resaddID['Index'] = 3
                 if "Index" not in resaddID:
                     resaddID['Index'] = 0
-                column_key = str(tuple(resaddID.keys())).replace("\'","`")
-                column_value = tuple(map(str,list(resaddID.values())))
+                # set default
+                for resaddIDkey in resaddID:
+                    if not resaddID[resaddIDkey]:
+                        resaddID[resaddIDkey] = '.'
+                column_key = str(tuple(Final_result_title)).replace("\'","`")
+                tmp_value = [resaddID[ck] for ck in Final_result_title]
+                column_value = tuple(map(str,list(tmp_value)))
                 User_insert = "INSERT INTO `%s` %s VALUES %s" % (User_id,column_key,str(column_value))
 
                 try:
@@ -1147,4 +1162,4 @@ class DataTablesServer(object):
 
 
 if __name__=='__main__':
-    app.run(host='0.0.0.0',threaded=True)
+    app.run(host='0.0.0.0', threaded=True)
