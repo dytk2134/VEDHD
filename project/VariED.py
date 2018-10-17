@@ -23,13 +23,13 @@ ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
 humandb_path = '/var/www/html/varied/annovar/humandb/'
 
 #test
-"""
-UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
-InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
-CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
-ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
-humandb_path = '/var/www/html/varied/annovar/humandb/'
-"""
+
+#UPLOAD_FOLDER='/home/bioinfo/Heart_gene_database/HeartInter/Uploads/'
+#InterVar_Path='/var/www/html/varied/annovar/Intervar.py'
+#CADD_path = '/home/bioinfo/Variedtools/CADD_v1.3/bin/score.sh'
+#ANNOVAR_path = '/var/www/html/varied/annovar/table_annovar.pl'
+#humandb_path = '/var/www/html/varied/annovar/humandb/'
+
 ALLOWED_EXTENSIONS=set(['txt','vcf'])
 app = Flask(__name__)
 app.secret_key = "^awed@1qh)#1ozd0+2dx*d117l3cr!@rfnr238jducwmpt0cd_"
@@ -81,17 +81,20 @@ def Expression_profiles():
 
 #title processing
         exp_table = request.form["data_Annotation"] + "_exp"
-        exp_column = ",".join(list(map(lambda orig_string:Annotation_table+"."+orig_string+"_FPKM"+","+Annotation_table+"."+orig_string +"_Rank",eval(exp_table))))
+        if exp_table == "Human_exp":
+            exp_column = ",".join(list(map(lambda orig_string:Annotation_table+"."+orig_string+"_TPM"+","+Annotation_table+"."+orig_string +"_Rank",eval(exp_table))))
+        else:
+            exp_column = ",".join(list(map(lambda orig_string:Annotation_table+"."+orig_string+"_FPKM"+","+Annotation_table+"."+orig_string +"_Rank",eval(exp_table))))
         Annotation_title.extend(exp_column.replace(Annotation_table +".","").split(","))
         Annotation_column = ",".join([Annotation_column,exp_column])
         if Annotation_column.endswith(','):
             Annotation_column = Annotation_column[:-1]
         if len(Human_exp)!=0:
-            if "Human_GRCh37_RNA" != Annotation_table and "Human_GRCh38_RNA"!= Annotation_table:
+            if "Human_GRCh37_TPM_RNA" != Annotation_table and "Human_GRCh38_TPM_RNA"!= Annotation_table:
                 Annotation_title.append("Human_orthologs")
 
                 Annotation_title.extend([s + "_AVGExp" for s in Human_exp])
-                Orthologs = ",".join(list(map(lambda orig_string:orig_string+"_FPKM"+","+orig_string +"_Rank",Human_exp)))
+                Orthologs = ",".join(list(map(lambda orig_string:orig_string+"_TPM"+","+orig_string +"_Rank",Human_exp)))
                 Human_orthologs.extend(Orthologs.split(","))
 
         if len(Mouse_exp)!=0:
@@ -199,18 +202,18 @@ def Expression_profiles():
 
         for genename,values in FinalResult.items():
             if genename not in Dupl:
-                if "Human_GRCh37_RNA" != Annotation_table and "Human_GRCh38_RNA"!= Annotation_table:
+                if "Human_GRCh37_TPM_RNA" != Annotation_table and "Human_GRCh38_TPM_RNA"!= Annotation_table:
                     if len(Human_exp)!=0:
                         if values[0]['family_ID']!=None:
                             sql_command = 'SELECT %s FROM %s WHERE `family_ID` = \"%s\" GROUP BY family_ID'
                             sql_command = sql_command % \
-                        (",".join(list(map(lambda orig_string:"ROUND(AVG("+orig_string+"_FPKM),2) AS "+orig_string+"_AVGExp",Human_exp))),"Human_GRCh37_RNA",values[0]['family_ID'])
+                        (",".join(list(map(lambda orig_string:"ROUND(AVG("+orig_string+"_TPM),2) AS "+orig_string+"_AVGExp",Human_exp))),"Human_GRCh37_TPM_RNA",values[0]['family_ID'])
                             con.execute(sql_command)
                             Result_exp = con.fetchall()
                             if len(Result_exp)!=0:
                                 values[0].update(Result_exp[0])
-                                sql_command = 'SELECT gene_name_ensembl,ensembl_gene_id,%s FROM Human_GRCh37_RNA WHERE `family_ID` = \"%s\"'
-                                sql_command = sql_command % (",".join(list(map(lambda orig_string:orig_string+"_FPKM,"+orig_string+"_Rank",Human_exp))),values[0]['family_ID'])
+                                sql_command = 'SELECT gene_name_ensembl,ensembl_gene_id,%s FROM Human_GRCh37_TPM_RNA WHERE `family_ID` = \"%s\"'
+                                sql_command = sql_command % (",".join(list(map(lambda orig_string:orig_string+"_TPM,"+orig_string+"_Rank",Human_exp))),values[0]['family_ID'])
                                 con.execute(sql_command)
                                 values[0]["Human_orthologs"] = list(con.fetchall())
                         if "Human_orthologs" not in values[0]:
@@ -306,17 +309,17 @@ def geneselect():
 
         for duplgene in dupl:
             dup_res = json.loads(request.form[duplgene].replace("\'","\"").replace("None","null"))
-            if "Human_GRCh37_RNA" != Annotation_table and "Human_GRCh38_RNA"!= Annotation_table:
+            if "Human_GRCh37_TPM_RNA" != Annotation_table and "Human_GRCh38_TPM_RNA"!= Annotation_table:
                 if len(Human_exp)!=0:
                     if dup_res['family_ID']!=None:
                         sql_command = 'SELECT %s FROM %s WHERE `family_ID` = \"%s\" GROUP BY family_ID'
-                        sql_command = sql_command % (",".join(list(map(lambda orig_string:"ROUND(AVG("+orig_string+"_FPKM),2) AS "+orig_string+"_AVGExp",Human_exp))),"Human_GRCh37_RNA",dup_res['family_ID'])
+                        sql_command = sql_command % (",".join(list(map(lambda orig_string:"ROUND(AVG("+orig_string+"_TPM),2) AS "+orig_string+"_AVGExp",Human_exp))),"Human_GRCh37_TPM_RNA",dup_res['family_ID'])
                         con.execute(sql_command)
                         Result_exp = con.fetchall()
                         if len(Result_exp)!=0:
                             dup_res.update(Result_exp[0])
-                            sql_command = 'SELECT gene_name_ensembl,ensembl_gene_id,%s FROM Human_GRCh37_RNA WHERE `family_ID` = \"%s\"'
-                            sql_command = sql_command % (",".join(list(map(lambda orig_string:orig_string+"_FPKM,"+orig_string+"_Rank",Human_exp))),dup_res['family_ID'])
+                            sql_command = 'SELECT gene_name_ensembl,ensembl_gene_id,%s FROM Human_GRCh37_TPM_RNA WHERE `family_ID` = \"%s\"'
+                            sql_command = sql_command % (",".join(list(map(lambda orig_string:orig_string+"_TPM,"+orig_string+"_Rank",Human_exp))),dup_res['family_ID'])
                             con.execute(sql_command)
                             dup_res["Human_orthologs"] = list(con.fetchall())
                     if "Human_orthologs" not in dup_res:
@@ -331,7 +334,6 @@ def geneselect():
                     if dup_res['family_ID']!=None:
                         sql_command = 'SELECT %s FROM %s WHERE `family_ID` = \"%s\" GROUP BY family_ID'
                         sql_command = sql_command % (",".join(list(map(lambda orig_string:"ROUND(AVG("+orig_string+"_FPKM),2) AS "+ orig_string+"_AVGExp",Zebrafish_exp))),"Zebrafish_GRCz10_RNA",dup_res['family_ID'])
-                        print(sql_command)
                         con.execute(sql_command)
                         Result_exp = con.fetchall()
                         if len(Result_exp)!=0:
@@ -390,6 +392,7 @@ def Variants_search():
         JPN_population = request.form.getlist("JPN")
         ESP_population = request.form.getlist("ESP")
         TaiwanBiobank = request.form.getlist("TWB")
+        ExAC_population = request.form.getlist("ExAC")
         tissue = request.form.getlist("tissue")
         REVEL_threshold = float(request.form["REVEL_threshold"])
         detected_level = 0.5
@@ -400,7 +403,7 @@ def Variants_search():
 
         """add user select tissue to gene annotation list"""
         Gene_annotation =["chr","pos","ref","alt","gene_name_ensembl","gene_description"]
-        tissue_column_search = ",".join(list(map(lambda orig_string:orig_string +"_FPKM"+","+orig_string + "_Rank",tissue)))
+        tissue_column_search = ",".join(list(map(lambda orig_string:orig_string +"_TPM",tissue)))
         tissue_column_out = ""
         exp_out_list = request.form.getlist("exp_out")
         exp_out_list.append("detected")
@@ -412,6 +415,7 @@ def Variants_search():
             Gene_annotation.extend(tissue_column_out.split(",")[1:])
             Final_result_title.extend(tissue_column_out.split(",")[1:])
         Gene_annotation.append("External")
+        Final_result_title.append("External")
 
        #add different population to allele freq table
 
@@ -443,6 +447,10 @@ def Variants_search():
                 TWB_NGS_column = "TWB_NGS_Ref_" + Output_format + "," + "TWB_NGS_Alt_" +Output_format
                 Final_result_title.extend(TWB_NGS_column.split(","))
                 Population_allele_freq.extend(TWB_NGS_column.split(","))
+        if len(request.form.getlist("ExAC")) != 0:
+            ExAC_population_column = ",".join(list(map(lambda orig_string:orig_string + "_Ref_" +Output_format +","+orig_string + "_Alt_" +Output_format,ExAC_population)))
+            Final_result_title.extend(ExAC_population_column.split(","))
+            Population_allele_freq.extend(ExAC_population_column.split(","))
         if len(request.form.getlist("REVEL")) != 0:
             Final_result_title.extend(["REVEL"])
             Predict.extend(["REVEL"])
@@ -468,7 +476,6 @@ def Variants_search():
             ANNOVAR_column.extend(request.form.getlist("gnomad_genome"))
             Final_result_title.extend(request.form.getlist("gnomad_genome"))
             Population_allele_freq.extend(request.form.getlist("gnomad_genome"))
-            print(request.form.getlist("gnomad_genome"))
         if "dbnsfp30a" in request.form.getlist("anno"):
             ANNOVAR_column.extend(request.form.getlist("Polyphen2"))
             Final_result_title.extend(request.form.getlist("Polyphen2"))
@@ -480,9 +487,13 @@ def Variants_search():
 
 
         #if user input file
-        file = request.files['file']
+        try:
+            file = request.files['file']
+        except:
+            file = False
         #如果使用者上傳檔案，則使用此檔案的資訊
-        if file.filename == '':
+        #if file.filename == '':
+        if not file:
             variant_text = multiple_replace(request.form['variants_list'],{"\"":"","\'":"","`":"","%":""})
             variant_text = variant_text.upper()
             variant_list =list(filter(None,re.split(regexPattern,variant_text)))
@@ -597,27 +608,40 @@ def Variants_search():
                         value.extend(repeat(".",2))
                         TWB_result =dict(zip(list(TWB_NGS_column.split(",")),value))
                         Final_result[Result_line].update(TWB_result)
-
+                if len(ExAC_population) != 0:
+                    sql_command="SELECT %s FROM allele_frequency.ExAC_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (ExAC_population_column,Output_format,vars[1],vars[2],vars[3],vars[4])
+                    con.execute(sql_command)
+                    ExAC_result = con.fetchall()
+                    if len(ExAC_result)>0:
+                        Final_result[Result_line].update(ExAC_result[0])
+                    else:
+                        value=[]
+                        value.extend(repeat(".",len(ExAC_population)*2))
+                        ExAC_result =dict(zip(list(ExAC_population_column.split(",")),value))
+                        Final_result[Result_line].update(ExAC_result)
 
 
                 if len(tissue)!=0:
-                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`, `gene_description`,`%s`,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",tissue_column_search,vars[1],vars[2])
+                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`, `gene_description`,`%s`,%s FROM Expression_profiles.Human_GRCh37_TPM_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_TPM_RNA.gene_start AND Human_GRCh37_TPM_RNA.gene_end" % (target_tissue+"_TPM",tissue_column_search,vars[1],vars[2])
                 if len(tissue)==0:
-                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,`%s` FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",vars[1],vars[2])
+                    sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,`%s` FROM Expression_profiles.Human_GRCh37_TPM_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_TPM_RNA.gene_start AND Human_GRCh37_TPM_RNA.gene_end" % (target_tissue+"_TPM",vars[1],vars[2])
 
                 con.execute(sql_command)
                 RNA_result = con.fetchall()
                 if len(RNA_result) > 0:
                     Final_result[Result_line].update(RNA_result[0])
                     for RNA_k,RNA_v in RNA_result[0].items():
-                        if "FPKM" in RNA_k:
+                        if "TPM" in RNA_k:
                             if RNA_v != "." and RNA_v !=None:
                                 if float(str(RNA_v)) >= detected_level:
-                                    Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"Yes"})
+                                    Final_result[Result_line].update({RNA_k.replace("_TPM","_detected"):"Yes"})
                                 else:
-                                    Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"No"})
+                                    Final_result[Result_line].update({RNA_k.replace("_TPM","_detected"):"No"})
                             else:
-                                Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"."})
+                                Final_result[Result_line].update({RNA_k:"."})
+                                Final_result[Result_line].update({RNA_k.replace("_TPM","_detected"):"."})
+                        else:
+                            Final_result[Result_line].update({RNA_k:"."})
 
                     URL = "."
                     if RNA_result[0]["ensembl_gene_id"]!=".":
@@ -752,28 +776,41 @@ def Variants_search():
                                 TWB_result =dict(zip(list(TWB_NGS_column.split(",")),value))
                                 Final_result[Result_line].update(TWB_result)
 
-
+                        if len(ExAC_population) != 0:
+                            sql_command="SELECT %s FROM allele_frequency.ExAC_%s WHERE (chr =\"%s\") AND (pos =\"%s\") AND (ref = \"%s\") AND (alt= \"%s\")" % (ExAC_population_column,Output_format,CHROM,record.POS,record.REF,record.ALT[idx])
+                            con.execute(sql_command)
+                            ExAC_result = con.fetchall()
+                            if len(ExAC_result)>0:
+                                Final_result[Result_line].update(ExAC_result[0])
+                            else:
+                                value=[]
+                                value.extend(repeat(".",len(ExAC_population)*2))
+                                ExAC_result =dict(zip(list(ExAC_population_column.split(",")),value))
+                                Final_result[Result_line].update(ExAC_result)
 
 
 
                         #RNA expression
                         if len(tissue)!=0:
-                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,%s,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",tissue_column_search,CHROM,record.POS)
+                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,%s,%s FROM Expression_profiles.Human_GRCh37_TPM_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_TPM_RNA.gene_start AND Human_GRCh37_TPM_RNA.gene_end" % (target_tissue+"_TPM",tissue_column_search,CHROM,record.POS)
                         if len(tissue)==0:
-                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,%s FROM Expression_profiles.Human_GRCh37_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_RNA.gene_start AND Human_GRCh37_RNA.gene_end" % (target_tissue+"_FPKM",CHROM,record.POS)
+                            sql_command = "SELECT `ensembl_gene_id`,`gene_name_ensembl`,`gene_description`,%s FROM Expression_profiles.Human_GRCh37_TPM_RNA WHERE chr = \"%s\" AND %s BETWEEN Human_GRCh37_TPM_RNA.gene_start AND Human_GRCh37_TPM_RNA.gene_end" % (target_tissue+"_TPM",CHROM,record.POS)
                         con.execute(sql_command)
                         RNA_result = con.fetchall()
                         if len(RNA_result) > 0:
                             Final_result[Result_line].update(RNA_result[0])
                             for RNA_k,RNA_v in RNA_result[0].items():
-                                if "FPKM" in RNA_k:
+                                if "TPM" in RNA_k:
                                     if RNA_v != "." and RNA_v !=None:
                                         if float(str(RNA_v)) >= detected_level:
-                                            Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"Yes"})
+                                            Final_result[Result_line].update({RNA_k.replace("_TPM","_detected"):"Yes"})
                                         else:
-                                            Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"No"})
+                                            Final_result[Result_line].update({RNA_k.replace("_TPM","_detected"):"No"})
                                     else:
-                                        Final_result[Result_line].update({RNA_k.replace("_FPKM","_detected"):"."})
+                                        Final_result[Result_line].update({RNA_k:"."})
+                                        Final_result[Result_line].update({RNA_k.replace("_TPM","_detected"):"."})
+                                else:
+                                    Final_result[Result_line].update({RNA_k:"."})
                             URL="."
                             if RNA_result[0]["ensembl_gene_id"]!=".":
                                 URL ="<a href=\"http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="+RNA_result[0]["ensembl_gene_id"]+"\">Ensembl</a>"
@@ -831,8 +868,8 @@ def Variants_search():
         else:
             flash('File format not supported!')
             removeuserfile(User_id)
-            if len(request.form.getlist("CADD"))!=0:
-                CADD_file.close()
+            #if len(request.form.getlist("CADD"))!=0:
+            #    CADD_file.close()
             return redirect(url_for('Variants_search'))
 
 
@@ -845,7 +882,8 @@ def Variants_search():
         anno_oper = ",f" * len(request.form.getlist("anno"))
 
 
-        if file.filename == '':
+        #if file.filename == '':
+        if not file:
             cmd='%s %s %s -buildver hg19 -remove --thread 2 -protocol ensGene,gerp++gt2%s -operation g,f%s -nastring . --outfile %s' % (ANNOVAR_path, os.path.join(app.config['UPLOAD_FOLDER'],User_id +".avinput"),humandb_path,anno_data,anno_oper, os.path.join(app.config['UPLOAD_FOLDER'],User_id))
 
 
@@ -862,8 +900,13 @@ def Variants_search():
         with open(os.path.join(app.config['UPLOAD_FOLDER'],User_id+".hg19_multianno.txt"),"r") as annovar:
             for line in csv.DictReader(annovar,delimiter='\t'):
                 annovar_result = [line[x] for x in ANNOVAR_column]
-                Final_result[Current_line].update(dict(zip(ANNOVAR_column,annovar_result)))
-                Current_line +=1
+                try:
+                    Final_result[Current_line].update(dict(zip(ANNOVAR_column,annovar_result)))
+                    Current_line +=1
+                except:
+                    flash('File format not supported!')
+                    return redirect(url_for('Variants_search'))
+
 
 
         if len(request.form.getlist("CADD"))!=0:
@@ -950,43 +993,50 @@ def Variants_search():
         """user table schema"""
         db=MySQLdb.connect(host="localhost",user="User_table",passwd="H58RrCeh69vtVuLq",db="user_table")
         con=db.cursor()
+        higher_precedence = set(['frameshift insertion', 'frameshift deletion', 'frameshift substitution', 'stopgain', 'stoploss'])
+        lower_precedence = set(['nonframeshift insertion', 'nonframeshift deletion', 'nonframeshift substitution', 'nonsynonymous SNV'])
 
         if len(Final_result)!=0:
             Total_key = list(Final_result[0].keys())
+            print(Total_key)
             if "Index" not in Total_key:
                 Total_key.append("Index")
-            User_table_command = "CREATE TABLE `%s` (`id` int(11) NOT NULL auto_increment,%s,PRIMARY KEY  (`id`))" % (User_id,",".join(list(map(lambda orig:"`"+orig+"` TEXT NOT NULL",Total_key))))
+            User_table_command = "CREATE TABLE `%s` (`id` int(11) NOT NULL auto_increment,%s,PRIMARY KEY  (`id`))" % (User_id,",".join(list(map(lambda orig:"`"+orig+"` TEXT NOT NULL",Final_result_title))))
             con.execute(User_table_command)
             User_insert = "INSERT INTO `%s` %s VALUES %s"
-
             """Add index"""
             for resaddID in Final_result:
                 if "intergenic" in resaddID.values() or "intronic" in resaddID.values() or "synonymous SNV" in resaddID.values():
                     resaddID['Index'] = 0
                 if resaddID['REVEL']!= ".":
-                    if "nonsynonymous SNV" in resaddID.values() or float(resaddID['REVEL'])<REVEL_threshold:
+                    if resaddID['ExonicFunc.ensGene'] in lower_precedence or float(resaddID['REVEL']) < REVEL_threshold:
                         resaddID['Index'] = 1
-                    if ("nonsynonymous SNV" in resaddID.values() and float(resaddID['REVEL'])>REVEL_threshold) or ("splicing" in resaddID.values()) or ("stopgain"  +++ in resaddID.values()):
+                    if (resaddID['ExonicFunc.ensGene'] in lower_precedence and float(resaddID['REVEL']) > REVEL_threshold) or (resaddID['Func.ensGene'] == "splicing") or (resaddID['ExonicFunc.ensGene'] in higher_precedence):
                         resaddID['Index'] = 2
-                        if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
-                            if float(resaddID[target_tissue+"_FPKM"])>=0.5:
+                        if resaddID[target_tissue+"_TPM"]!="." and resaddID[target_tissue+"_TPM"]!=None:
+                            if float(resaddID[target_tissue+"_TPM"])>=0.5:
                                 resaddID['Index'] = 3
                         if resaddID['gerp++gt2']!=".":
                             resaddID['Index'] = 3
                 elif resaddID['REVEL']== ".":
-                    if "nonsynonymous SNV" in resaddID.values():
+                    if resaddID['ExonicFunc.ensGene'] in lower_precedence:
                         resaddID['Index'] = 1
-                    if "splicing" in resaddID.values() or "stopgain" in resaddID.values():
+                    if resaddID['Func.ensGene'] == "splicing" or resaddID['ExonicFunc.ensGene'] in higher_precedence:
                         resaddID['Index'] = 2
-                        if resaddID[target_tissue+"_FPKM"]!="." and resaddID[target_tissue+"_FPKM"]!=None:
-                            if float(resaddID[target_tissue+"_FPKM"])>=0.5:
+                        if resaddID[target_tissue+"_TPM"]!="." and resaddID[target_tissue+"_TPM"]!=None:
+                            if float(resaddID[target_tissue+"_TPM"])>=0.5:
                                 resaddID['Index'] = 3
                         if resaddID['gerp++gt2']!=".":
                                 resaddID['Index'] = 3
                 if "Index" not in resaddID:
                     resaddID['Index'] = 0
-                column_key = str(tuple(resaddID.keys())).replace("\'","`")
-                column_value = tuple(map(str,list(resaddID.values())))
+                # set default
+                for resaddIDkey in resaddID:
+                    if not resaddID[resaddIDkey]:
+                        resaddID[resaddIDkey] = '.'
+                column_key = str(tuple(Final_result_title)).replace("\'","`")
+                tmp_value = [resaddID[ck] for ck in Final_result_title]
+                column_value = tuple(map(str,list(tmp_value)))
                 User_insert = "INSERT INTO `%s` %s VALUES %s" % (User_id,column_key,str(column_value))
 
                 try:
@@ -1112,4 +1162,4 @@ class DataTablesServer(object):
 
 
 if __name__=='__main__':
-    app.run(host='0.0.0.0',threaded=True)
+    app.run(host='0.0.0.0', threaded=True)
