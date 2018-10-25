@@ -998,7 +998,6 @@ def Variants_search():
 
         if len(Final_result)!=0:
             Total_key = list(Final_result[0].keys())
-            print(Total_key)
             if "Index" not in Total_key:
                 Total_key.append("Index")
             User_table_command = "CREATE TABLE `%s` (`id` int(11) NOT NULL auto_increment,%s,PRIMARY KEY  (`id`))" % (User_id,",".join(list(map(lambda orig:"`"+orig+"` TEXT NOT NULL",Final_result_title))))
@@ -1006,6 +1005,7 @@ def Variants_search():
             User_insert = "INSERT INTO `%s` %s VALUES %s"
             """Add index"""
             for resaddID in Final_result:
+                resaddID['Index'] = 0
                 if "intergenic" in resaddID.values() or "intronic" in resaddID.values() or "synonymous SNV" in resaddID.values():
                     resaddID['Index'] = 0
                 if resaddID['REVEL']!= ".":
@@ -1034,6 +1034,8 @@ def Variants_search():
                 for resaddIDkey in resaddID:
                     if not resaddID[resaddIDkey]:
                         resaddID[resaddIDkey] = '.'
+                        if resaddIDkey == "Index":
+                            resaddID[resaddIDkey] = 0
                 column_key = str(tuple(Final_result_title)).replace("\'","`")
                 tmp_value = [resaddID[ck] for ck in Final_result_title]
                 column_value = tuple(map(str,list(tmp_value)))
