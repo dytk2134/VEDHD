@@ -1,0 +1,17 @@
+a.hover hoverable { 
+    background-color: #052101; 
+}
+
+.my-custom-scrollbar {
+    position: relative;
+    height: 200px;
+    overflow: auto;
+  }
+  .table-wrapper-scroll-y {
+    display: block;
+  }
+.bg-black {
+    background-color: #052101;
+    font-size: 20px;
+    height: 80px;
+}

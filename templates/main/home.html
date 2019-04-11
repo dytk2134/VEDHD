@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block head_title %}|Home{% endblock %}
+{% block content %}
+<div class="container">
+	<h2>VariED</h2>
+	<h5>An integrated database of variants and gene expression profiles for genetic diseases</h5>
+	<div class="card border-primary mb-3">
+		<div class="card-header">Introduction</div>
+		<div class="card-body">
+			<p class="card-text">
+				VariED is the first web-based querying system that
+				integrates an annotation database and expression profiles for genetic variants. The database
+				offers a user-friendly platform and locates gene/variant names in the literature by connecting
+				to established online querying tools, biological annotation tools, and records from free-text
+				literature. VariED acts as a central hub for organized genome information consisting of gene
+				annotation, variant allele frequency, functional prediction, clinical interpretation, and gene
+				expression profiles in three species: human, mouse and zebrafish. VariED also provides a
+				novel scoring scheme to predict the functional impact of a DNA variant. With one single
+				entry, all results regarding queried DNA variants can be downloaded.
+			</p>
+		</div>
+	</div>
+	<div class="card border-primary mb-3">
+		<div class="card-header">What's News!</div>
+		<div class="card-body">
+			<div class="table-wrapper-scroll-y my-custom-scrollbar">
+				<table class="table table-hover">
+					<tbody>
+						{% for new in news %}
+						<tr>
+							<th scope="col">{{ new.release_date }}</th>
+							<td>{{ new.memo }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock content %}
