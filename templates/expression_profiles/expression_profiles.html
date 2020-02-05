@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block head_title %}|Expression Profiles{% endblock %}
+{% block content %}
+
+<div class="container">
+    <div class="card" style="border-color: white;">
+        <h3>Expression Profiles</h3>
+        <li>This function is for users to query gene annotation and tissue-based gene expression profiles.</li>
+        <br>
+        <form action="{{ url('expression_profiles:expression_profiles') }}" method="POST" id="request_form">
+            {{ csrf_input }}
+            <table class="table table-bordered" width="100%">
+                <tr style="background-color:#DFF0D8;">
+                    <td><b>Step1: select the species and reference genome</b></td>
+                </tr>
+                <tr style="background-color:#D9EDF7;">
+                    <td>Reference genome</td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>* please select the species and reference genome you want to see</p>
+                        <div>
+                            <label>
+                                <input type="radio" name="species" value="human" id="human_id" checked>
+                                Homo sapiens (Human)
+                            </label>
+                            <div id="select_human" style="text-indent : 2em ;">
+                                <label class="radio-inline"><input type="radio" name="ref" id="GRCh38_id" value="GRCh38_Genes" checked> GRCh38.p12</label>
+                                <label class="radio-inline"><input type="radio" name="ref" id="GRCh37_id" value="GRCh37_Genes"> GRCh37.p13</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label>
+                                <input type="radio" name="species" value="mouse" id="mouse_id">
+                                Mus musculus (House mouse)
+                            </label>
+                            <div id="select_mouse" style="text-indent : 2em ;">
+                                <label><input type="radio" name="ref" id="GRCm38_id" value="GRCm38_Genes"> GRCm38.p6</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label>
+                                <input type="radio" name="species" value="zebrafish" id="zebrafish_id">
+                                Danio rerio (Zebrafish)
+                            </label>
+                            <div id="select_zebrafish" style="text-indent : 2em ;">
+                                <label><input type="radio" name="ref" id="GRCz11_id" value="GRCz11_Genes"> GRCz11</label>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr style="background-color:#DFF0D8;">
+                    <td><b>Step 2: select tissues that interests you</b></td>
+                </tr>
+                <tr style="background-color:#D9EDF7;">
+                    <td>Tissues</td>
+                </tr>
+                <tr>
+                    <td>
+                        <p id="needed"><font color="red">* Please check at least one species</font></p>
+                        <p>* Please check at least one species</p>
+                        {% for species, expression_table in table_info_dict.items() %}
+                            <p><b>{{ species }}</b></p>
+                            {% for table_name, tissues in expression_table.items() %}
+                                <li>{{ table_name }}</li>
+                                <select multiple="multiple" id="{{ table_name }}" name="{{ table_name }}" style="width: 80%;">
+                                    {% for tissue in tissues %}<option value="{{ tissue[1] }}">{{ tissue[0] }}</option>{% endfor %}
+                                </select>
+                            {% endfor %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                <tr style="background-color:#DFF0D8;">
+                    <td><b>Step 3: Input gene symbol or Ensembl gene id list</b></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="form-group">
+                            <select name="SearchType">
+                                <option value="Symbol">Gene Symbol</option>
+                                <option value="Ensembl_id">Ensembl Gene ID</option>
+                            </select>
+                            <br>
+                            <textarea name="search_list" id="search_list" cols="50" rows="3" required="required"></textarea>
+                            <br>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type='Submit' id="Submit" class="btn btn-primary btn-lg btn-block" value='Submit'>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+<!-- jquery ui -->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<!-- multiple select -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://unpkg.com/multiple-select@1.3.1/dist/multiple-select.min.css">
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://unpkg.com/multiple-select@1.3.1/dist/multiple-select.min.js"></script>
+
+<script>
+    $("select[multiple='multiple']").multipleSelect({
+        filter: true
+    });
+    $("#needed").hide();
+    $("#select_mouse").hide();
+    $("#select_zebrafish").hide();
+    $("input[name='species']").change(function () {
+        if ($("#human_id").is(':checked')) {
+            $("#GRCh37_id").prop("checked", true);
+            $("#select_human").show();
+            $("#select_mouse").hide();
+            $("#select_zebrafish").hide();
+        }
+        if ($("#mouse_id").is(':checked')) {
+            $("#GRCm38_id").prop("checked", true);
+            $("#select_human").hide();
+            $("#select_mouse").show();
+            $("#select_zebrafish").hide();
+        }
+        if ($("#zebrafish_id").is(':checked')) {
+            $("#GRCz11_id").prop("checked", true);
+            $("#select_human").hide();
+            $("#select_mouse").hide();
+            $("#select_zebrafish").show();
+        }
+    });
+</script>
+{% endblock content %}

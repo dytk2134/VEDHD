@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from os.path import join
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'your secret key'
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -37,6 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
+    'main',
+    'variants_search',
+    'expression_profiles'
 ]
 
 MIDDLEWARE = [
@@ -53,8 +58,20 @@ ROOT_URLCONF = 'settings.urls'
 
 TEMPLATES = [
     {
+        'BACKEND': 'django.template.backends.jinja2.Jinja2',
+        'DIRS': [
+            join(BASE_DIR, 'templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'autoescape': True,
+            'environment': 'settings.jinja2_env.environment'
+        }
+    },
+    {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,9 +93,9 @@ WSGI_APPLICATION = 'settings.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'database name',
-        'USER': 'user name',
-        'PASSWORD': 'password',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '3306'
     }
@@ -122,11 +139,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [join(BASE_DIR, 'static')]
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'your email host user'
-EMAIL_HOST_PASSWORD = 'your password'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = 'True'
 EMAIL_POST = '587'
+
+# CRONJOBS = [
+#     ('* * */1 * *', 'main.cron.remove_report')
+# #    ('*/1 * * * *', 'main.cron.remove_report', '>> '+join(BASE_DIR, 'cronjob.log'))
+# ]
